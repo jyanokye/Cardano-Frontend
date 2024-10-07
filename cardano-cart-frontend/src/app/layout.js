@@ -4,6 +4,8 @@ import "./globals.css";
 import { CartProvider} from "react-use-cart";
 import theme from "./_components/theme";
 import { ThemeProvider } from "@mui/material";
+
+
 // Load local fonts
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -31,11 +33,12 @@ export default function RootLayout({ children }) {
         <title>Cardano Cart</title>
         </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-      <ThemeProvider theme={theme}>
-        <CartProvider>
-          {children}
-        </CartProvider>
-        </ThemeProvider>
+          <ThemeProvider theme={theme}>
+            <CartProvider>
+              {children}
+            </CartProvider>
+          </ThemeProvider>
+      
       </body>
     </html>
   );

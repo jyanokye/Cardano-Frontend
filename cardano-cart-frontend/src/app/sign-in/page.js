@@ -1,6 +1,8 @@
 'use client'
-import * as React from 'react';
+
 import { useState } from 'react';
+import React from 'react';
+import { useRouter } from 'next/navigation'; // Import useRouter from Next.js
 import { CssVarsProvider, extendTheme, useColorScheme } from '@mui/joy/styles';
 import GlobalStyles from '@mui/joy/GlobalStyles';
 import CssBaseline from '@mui/joy/CssBaseline';
@@ -22,6 +24,12 @@ import LightModeRoundedIcon from '@mui/icons-material/LightModeRounded';
 
 import BadgeRoundedIcon from '@mui/icons-material/BadgeRounded';
 import  GoogleIcon  from './GoogleIcon';
+
+
+import { Auth } from '../../../utils/_auth';
+
+const auth = new Auth();
+
 
 function ColorSchemeToggle(props) {
   const { onClick, ...other } = props;
@@ -49,19 +57,40 @@ function ColorSchemeToggle(props) {
 
 const customTheme = extendTheme({ defaultColorScheme: 'dark' });
 
-const handleGoogleSignIn = async () => {
-    await signInWithPopup(auth, googleProvider);
-    router.push('/home');
-    setError('Failed to sign in with Google. Please try again.');
-};
-const handleEmailSignIn = async (e) => {
-    await signInWithEmailAndPassword(auth, email, password);
-    router.push('/home');
-    setError('Invalid email or password');
-};
-
 
 export  default function JoySignInSideTemplate() {
+  const router = useRouter();
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleEmailSignIn = async (event) => {
+    event.preventDefault();
+
+    const credentials = {
+      email: email,
+      password: password,
+    };
+  
+    const endpoint = 'http://127.0.0.1:8000/api/v1/users/login/';
+  
+    auth.Credentials(credentials, endpoint)
+    .then(user => {
+      console.log('Authenticated user:', user)
+
+      const accessToken = user.access_token;  // Adjust this based on your API response structure
+    
+      // Save the access token (or other user data) to localStorage
+      localStorage.setItem('accessToken', accessToken);
+    
+      // Redirect the user to the homepage
+      router.push('/');
+    })
+    .catch(error => console.error('Error:', error));
+  }
+
+
+
   return (
     <CssVarsProvider theme={customTheme} disableTransitionOnChange>
       <CssBaseline />
@@ -153,15 +182,14 @@ export  default function JoySignInSideTemplate() {
             </Stack>
             
             <Stack sx={{ gap: 4, mt: 2 }}>
-              <form
-              >
+              <form onSubmit={handleEmailSignIn}>
                 <FormControl required>
                   <FormLabel>Email</FormLabel>
-                  <Input type="email" name="email" />
+                  <Input type="email" name="email" onChange={(e) => (setEmail(e.target.value))} />
                 </FormControl>
                 <FormControl required>
                   <FormLabel>Password</FormLabel>
-                  <Input type="password" name="password" />
+                  <Input type="password" name="password" onChange={(e) => (setPassword(e.target.value))} />
                 </FormControl>
                 <Stack sx={{ gap: 4, mt: 2 }}>
                   <Box
