@@ -78,7 +78,7 @@ export  default function JoySignInSideTemplate() {
     .then(user => {
       console.log('Authenticated user:', user)
 
-      const accessToken = user.access_token;  // Adjust this based on your API response structure
+      const accessToken = user.access;  // Adjust this based on your API response structure
     
       // Save the access token (or other user data) to localStorage
       localStorage.setItem('accessToken', accessToken);
