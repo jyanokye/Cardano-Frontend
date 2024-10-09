@@ -28,7 +28,7 @@ const fadeInEffect = {
   },
 };
 
-const WithStyles = ({ name, image, price }) => {
+const WithStyles = ({ id, name, image, price }) => {
   const { addItem } = useCart();
 
   return (
@@ -88,7 +88,7 @@ const WithStyles = ({ name, image, price }) => {
           <Button 
             variant="contained" 
             color="primary"
-            onClick={() => addItem({ id: name, name, price, image })}
+            onClick={() => addItem({ id, name, price, image })}
           >
             Add to Cart
           </Button>
@@ -264,6 +264,7 @@ const Home = () => {
                 {products.map((product) => (
                   <WithStyles
                     key={product.id}
+                    id={product.id}
                     name={product.name}
                     image={product.images[0]?.image_url}
                     price={product.price}
@@ -281,6 +282,7 @@ const Home = () => {
               {products.slice(0, 4).map((product) => (
                 <Grid item xs={12} sm={6} md={3} key={product.id}>
                   <WithStyles
+                    id={product.id}
                     name={product.name}
                     image={product.images[0]?.image_url}
                     price={product.price}

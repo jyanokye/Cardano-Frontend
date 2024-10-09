@@ -85,7 +85,7 @@ const CartPage = () => {
                             <Typography sx={{ ml: 2 }}>{item.name}</Typography>
                           </Box>
                         </TableCell>
-                        <TableCell align="right">₳{item.price.toFixed(2)}</TableCell>
+                        <TableCell align="right">₳{item.price}</TableCell>
                         <TableCell align="center">
                           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <IconButton size="small" onClick={() => updateItemQuantity(item.id, Math.max(item.quantity - 1, 1))}>
@@ -103,7 +103,7 @@ const CartPage = () => {
                             </IconButton>
                           </Box>
                         </TableCell>
-                        <TableCell align="right">₳{(item.price * item.quantity).toFixed(2)}</TableCell>
+                        <TableCell align="right">₳{(item.price * item.quantity)}</TableCell>
                         <TableCell align="center">
                           <Link href={`/checkout/${item.id}`} passHref>
                             <Button
@@ -129,7 +129,7 @@ const CartPage = () => {
                   Cart Total
                 </Typography>
                 <Typography variant="h5">
-                  ₳{cartTotal.toFixed(2)}
+                  ₳{cartTotal}
                 </Typography>
               </Paper>
             </Grid>
