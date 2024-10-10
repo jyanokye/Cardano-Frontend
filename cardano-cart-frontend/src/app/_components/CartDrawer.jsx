@@ -42,7 +42,7 @@ const CartDrawer = ({ open, onClose }) => {
                     />
                     <ListItemText
                       primary={item.name}
-                      secondary={`₳${item.price.toFixed(2)} each`}
+                      secondary={`₳${item.price} each`}
                     />
                   </Box>
                   <Box

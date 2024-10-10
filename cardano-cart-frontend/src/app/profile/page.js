@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Container,
   Typography,
@@ -19,33 +19,106 @@ import {
 } from '@mui/material';
 import { Edit, Save, Lock, CloudUpload } from '@mui/icons-material';
 import Header from '../_components/Header';
+import { getUser, updateUser, updateUserPassword } from '../../../utils/_products';
 
 const ProfilePage = () => {
+  const access_token = localStorage.getItem('accessToken');
+  
+
   const [editing, setEditing] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState(null);
+  const [avatarFile, setAvatarFile] = useState(null);
+  const fileInputRef = useRef(null);
+
+  const [errorMessage, setErrorMessage] = useState(null);
+
   const [profile, setProfile] = useState({
     name: 'James Anokye',
     email: 'jamesyawanokye17@example.com',
     address: 'Accra',
     phone: '+233 594569164',
   });
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (typeof window !== 'undefined') {
+        console.log(access_token); // should log access_token correctly
+        if (access_token) {
+          try {
+            const endpoint = 'http://localhost/api/v1/users/3/';
+            const fetchedUser = await getUser(endpoint, access_token);
+            setProfile({
+              name: fetchedUser?.first_name + ' ' + fetchedUser?.last_name,
+              email: fetchedUser?.email,
+              address: fetchedUser?.address,
+              phone: fetchedUser?.phone_number,
+            });
+            if (fetchedUser?.avatar && fetchedUser?.avatar?.length > 0) {
+              setAvatarUrl(fetchedUser?.avatar);
+            }
+          } catch (error) {
+            console.error('Error fetching user profile:', error);
+          }
+        }
+      }
+    };
+  
+    fetchUser();
+  }, []);
+
+
+
+
   const [passwordDialog, setPasswordDialog] = useState(false);
   const [passwords, setPasswords] = useState({
     current: '',
     new: '',
     confirm: '',
   });
-  const [avatarUrl, setAvatarUrl] = useState(null);
-  const fileInputRef = useRef(null);
+  
 
   const handleEdit = () => {
     setEditing(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    // Optionally disable editing UI here while saving
     setEditing(false);
-    // Here you would typically send the updated profile to your backend
-    console.log('Updated profile:', profile);
+    console.log('Editing')
+  
+    const endpoint = 'http://localhost/api/v1/users/3/';
+    const updatedUserForm = new FormData();
+    if (avatarFile) {
+      updatedUserForm.append('avatar', avatarFile); // Add the file to the form data
+    }
+
+    const [first_name, last_name] = profile.name.split(' ');
+    
+    updatedUserForm.append('first_name', first_name);
+    updatedUserForm.append('last_name', last_name);
+    updatedUserForm.append('email', profile.email);
+    updatedUserForm.append('address', profile.address);
+    updatedUserForm.append('phone_number', profile.phone);
+
+    for (const [key, value] of updatedUserForm.entries()) {
+      console.log(`${key}: ${value}`);
+    }
+  
+    try {
+      // Wait for the async updateUserProfile function to resolve
+      const response = await updateUser(endpoint, updatedUserForm, access_token);
+      
+      // Optionally, handle the response (e.g., show success message)
+      console.log('Profile updated successfully:', response);
+  
+    } catch (error) {
+      // Handle any errors that occur during the profile update request
+      console.error('Error updating profile:', error);
+  
+      setEditing(true);
+    }
   };
+  
 
   const handleChange = (e) => {
     setProfile({ ...profile, [e.target.name]: e.target.value });
@@ -64,11 +137,34 @@ const ProfilePage = () => {
     setPasswords({ current: '', new: '', confirm: '' });
   };
 
-  const handlePasswordSave = () => {
-    // Here you would typically send the password change request to your backend
-    console.log('Password change requested:', passwords);
-    handlePasswordDialogClose();
+  const handlePasswordSave = async () => {
+    // Define the endpoint and updated user password payload
+    if (passwords.new.length > 0 && (passwords.new == passwords.confirm)){
+      const endpoint = 'http://localhost/api/v1/users/3/';
+      const updatedUser = {
+        current_password: passwords.current,
+        new_password: passwords.new
+
+      };
+      console.log(updatedUser)
+
+  
+      try {
+        const response = await updateUserPassword(endpoint, updatedUser, access_token);      
+        console.log('Password change successful:', response);
+        handlePasswordDialogClose();
+      } catch (error) {
+        console.error('Error changing password:', error.message);
+        
+      }
+    }else{
+      setErrorMessage('Kindly check passwords')
+    }
+    
   };
+  
+
+
 
   const handlePhotoUpload = (event) => {
     const file = event.target.files[0];
@@ -76,6 +172,7 @@ const ProfilePage = () => {
       const reader = new FileReader();
       reader.onload = (e) => {
         setAvatarUrl(e.target.result);
+        setAvatarFile(file);
       };
       reader.readAsDataURL(file);
     }
@@ -112,6 +209,7 @@ const ProfilePage = () => {
                 variant="outlined"
                 startIcon={<CloudUpload />}
                 onClick={triggerFileInput}
+                disabled={!editing}
               >
                 Upload Photo
               </Button>
@@ -223,6 +321,9 @@ const ProfilePage = () => {
             value={passwords.confirm}
             onChange={handlePasswordChange}
           />
+          <DialogContentText sx={{ color: 'red' }}>
+            {errorMessage}
+          </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={handlePasswordDialogClose}>Cancel</Button>
