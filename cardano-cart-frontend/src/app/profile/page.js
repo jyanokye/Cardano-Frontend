@@ -30,6 +30,8 @@ const ProfilePage = () => {
   const [avatarFile, setAvatarFile] = useState(null);
   const fileInputRef = useRef(null);
 
+  const [errorMessage, setErrorMessage] = useState(null);
+
   const [profile, setProfile] = useState({
     name: 'James Anokye',
     email: 'jamesyawanokye17@example.com',
@@ -43,7 +45,7 @@ const ProfilePage = () => {
         console.log(access_token); // should log access_token correctly
         if (access_token) {
           try {
-            const endpoint = 'http://localhost/api/v1/users/1/';
+            const endpoint = 'http://localhost/api/v1/users/3/';
             const fetchedUser = await getUser(endpoint, access_token);
             setProfile({
               name: fetchedUser?.first_name + ' ' + fetchedUser?.last_name,
@@ -84,7 +86,7 @@ const ProfilePage = () => {
     setEditing(false);
     console.log('Editing')
   
-    const endpoint = 'http://localhost/api/v1/users/1/';
+    const endpoint = 'http://localhost/api/v1/users/3/';
     const updatedUserForm = new FormData();
     if (avatarFile) {
       updatedUserForm.append('avatar', avatarFile); // Add the file to the form data
@@ -137,21 +139,28 @@ const ProfilePage = () => {
 
   const handlePasswordSave = async () => {
     // Define the endpoint and updated user password payload
-    const endpoint = 'http://localhost/api/v1/users/1/change_password/';
-    const updatedUser = {
-      current_password: passwords.current,
-      new_password: passwords.new
+    if (passwords.new.length > 0 && (passwords.new == passwords.confirm)){
+      const endpoint = 'http://localhost/api/v1/users/3/';
+      const updatedUser = {
+        current_password: passwords.current,
+        new_password: passwords.new
 
-    };
+      };
+      console.log(updatedUser)
+
   
-    try {
-      const response = await updateUserPassword(endpoint, updatedUser, access_token);      
-      console.log('Password change successful:', response);
-      handlePasswordDialogClose();
-    } catch (error) {
-      console.error('Error changing password:', error);
-      
+      try {
+        const response = await updateUserPassword(endpoint, updatedUser, access_token);      
+        console.log('Password change successful:', response);
+        handlePasswordDialogClose();
+      } catch (error) {
+        console.error('Error changing password:', error.message);
+        
+      }
+    }else{
+      setErrorMessage('Kindly check passwords')
     }
+    
   };
   
 
@@ -312,6 +321,9 @@ const ProfilePage = () => {
             value={passwords.confirm}
             onChange={handlePasswordChange}
           />
+          <DialogContentText sx={{ color: 'red' }}>
+            {errorMessage}
+          </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={handlePasswordDialogClose}>Cancel</Button>

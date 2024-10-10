@@ -109,7 +109,7 @@ const Checkout = () => {
         handleCloseDialog();
         removeItem(productId); // Use productId here, not product.id
         alert('Payment confirmed! Thank you for your purchase.');
-        router.push('/');
+        router.push('/orders');
       })
       .catch(error => {
         console.error('Error completing order and payment:', error);
