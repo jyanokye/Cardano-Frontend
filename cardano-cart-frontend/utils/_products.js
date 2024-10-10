@@ -52,6 +52,38 @@ export const getUser = async (endpoint, access_token) => {
 }
 
 
+// update user
+export const updateUser = async (endpoint, userData, access_token) => {
+  try {
+    const response = await axios.put(endpoint, userData, {
+      headers: {
+        Authorization: `Bearer ${access_token}`,
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating user:', error.message);
+    throw error;
+  }
+}
+
+// change user password
+export const updateUserPassword = async (endpoint, userPasswordData, access_token) => {
+  try {
+    const response = await axios.put(endpoint, userPasswordData, {
+      headers: {
+        Authorization: `Bearer ${access_token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating user password:', error);
+    throw error;
+  }
+}
+
+
 // getWalletAddress from product id
 
 export const fetchProductSeller = async (product_id, access_token) => {
