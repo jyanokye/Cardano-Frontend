@@ -65,9 +65,33 @@ const Checkout = () => {
   const handleSubmitTransaction = () => {
     console.log('Transaction ID submitted:', transactionId);
     handleCloseDialog();
+    
+    // Create a new order
+    const newOrder = {
+      id: Date.now().toString(),
+      date: new Date().toISOString().split('T')[0],
+      product: {
+        ...product,
+        image: product.image // Ensure the image URL is included
+      },
+      quantity: quantity,
+      total: total,
+      status: 'Processing',
+      transactionId: transactionId
+    };
+
+    // Get existing orders from localStorage
+    const existingOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+    
+    // Add new order to existing orders
+    const updatedOrders = [...existingOrders, newOrder];
+    
+    // Save updated orders to localStorage
+    localStorage.setItem('orders', JSON.stringify(updatedOrders));
+
     removeItem(product.id);
     alert('Payment confirmed! Thank you for your purchase.');
-    router.push('/');
+    router.push('/orders');
   };
 
   return (
