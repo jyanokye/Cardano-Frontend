@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useState, useEffect } from 'react';
 import { Container, Typography, Button, Box, Grid, TextField, Link } from '@mui/material';
 import { ThemeProvider } from '@mui/material/styles';
 import Header from './_components/Header';
@@ -11,7 +12,9 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { ArrowBackIos, ArrowForwardIos } from '@mui/icons-material';
 import { useCart } from "react-use-cart";
-import { products } from './data';
+import { current_products } from './data';
+
+import { getAllProducts } from '../../utils/_products';
 
 const fadeInEffect = {
   hidden: { opacity: 0, y: 20 },
@@ -25,7 +28,7 @@ const fadeInEffect = {
   },
 };
 
-const WithStyles = ({ name, image, price }) => {
+const WithStyles = ({ id, name, image, price }) => {
   const { addItem } = useCart();
 
   return (
@@ -53,7 +56,7 @@ const WithStyles = ({ name, image, price }) => {
           objectFit: 'cover',
         }}
       />
-      <Typography variant="subtitle1" component="div" Wrap>
+      <Typography variant="subtitle1" component="div" wrap="true">
         {name}
       </Typography>
       
@@ -85,7 +88,7 @@ const WithStyles = ({ name, image, price }) => {
           <Button 
             variant="contained" 
             color="primary"
-            onClick={() => addItem({ id: name, name, price, image })}
+            onClick={() => addItem({ id, name, price, image })}
           >
             Add to Cart
           </Button>
@@ -118,6 +121,31 @@ const NextArrow = (props) => {
 };
 
 const Home = () => {
+
+  const [products, setProducts] = useState(current_products);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      if (typeof window !== 'undefined') {
+        const access_token = localStorage.getItem('accessToken');
+        console.log(access_token); // should log access_token correctly
+        if (access_token) {
+          try {
+            const endpoint = 'http://localhost/api/v1/products/';
+            const fetchedProducts = await getAllProducts(endpoint, access_token);
+            setProducts(fetchedProducts);
+          } catch (error) {
+            console.error('Error fetching products:', error);
+          }
+        }
+      }
+    };
+  
+    fetchProducts();
+  }, []);
+  
+
+
   const settings = {
     dots: false,
     infinite: true,
@@ -236,8 +264,9 @@ const Home = () => {
                 {products.map((product) => (
                   <WithStyles
                     key={product.id}
+                    id={product.id}
                     name={product.name}
-                    image={product.image}
+                    image={product.images[0]?.image_url}
                     price={product.price}
                   />
                 ))}
@@ -253,8 +282,9 @@ const Home = () => {
               {products.slice(0, 4).map((product) => (
                 <Grid item xs={12} sm={6} md={3} key={product.id}>
                   <WithStyles
+                    id={product.id}
                     name={product.name}
-                    image={product.image}
+                    image={product.images[0]?.image_url}
                     price={product.price}
                   />
                 </Grid>

@@ -1,32 +1,38 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-
-import {Typography, IconButton, AppBar, Badge, Toolbar, Button, Box, Popover, Link} from '@mui/material';
+import { Typography, IconButton, AppBar, Badge, Toolbar, Button, Box, Popover, Link } from '@mui/material';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import MenuIcon from '@mui/icons-material/Menu';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { motion } from 'framer-motion';
 import { styled } from '@mui/system';
-import { useCart } from "react-use-cart";
+import { useCart } from 'react-use-cart';
 import CartDrawer from './CartDrawer';
+
 const Header = () => {
-  
   const [anchorEl, setAnchorEl] = useState(null);
   const [cartOpen, setCartOpen] = useState(false);
- 
+  const [hasToken, setHasToken] = useState(false); // Track access token state
+  const { totalItems } = useCart();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    // Check for access_token in localStorage
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      setHasToken(true); // Set token status
+    }
+  }, []);
+
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
 
-
   const handleClose = () => {
     setAnchorEl(null);
   };
-  const { totalItems } = useCart();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+
   const handleCartOpen = () => {
     setCartOpen(true);
   };
@@ -36,8 +42,9 @@ const Header = () => {
   };
 
   if (!mounted) {
-    return null; 
+    return null;
   }
+
   const StyledBadge = styled(Badge)(({ theme }) => ({
     '& .MuiBadge-badge': {
       right: -3,
@@ -52,21 +59,19 @@ const Header = () => {
 
   const fadeInFromLeft = {
     hidden: { opacity: 0, x: -20 },
-    visible: { 
-      opacity: 1, 
-      x: 0, 
+    visible: {
+      opacity: 1,
+      x: 0,
       transition: {
-        duration: 1, 
-        ease: [0.175, 0.885, 0.32, 1.275]
-      }
+        duration: 1,
+        ease: [0.175, 0.885, 0.32, 1.275],
+      },
     },
   };
 
   return (
     <AppBar position="static" color="transparent" className="bg-white shadow-md">
       <Toolbar className="flex justify-between items-center">
-
-       
         <motion.div
           className="flex items-center"
           initial="hidden"
@@ -78,19 +83,13 @@ const Header = () => {
           </Typography>
         </motion.div>
 
-       
-        <motion.div
-          className="flex items-center space-x-4"
-          variants={fadeInFromLeft}
-          initial="hidden"
-          animate="visible"
-        >
+        <motion.div className="flex items-center space-x-4" variants={fadeInFromLeft} initial="hidden" animate="visible">
           {/* Menu Links */}
           <motion.div className="hidden md:flex space-x-4" variants={fadeInFromLeft}>
-            <Button className="text-black"><a href='/'>Home</a></Button>
-            <Button className="text-black"><a href='/shop'>Shop</a></Button>
-            <Button className="text-black"><a href='/about'>About</a></Button>
-            <Button className="text-black"><a href='/contact'>Contact</a></Button>
+            <Button className="text-black"><a href="/">Home</a></Button>
+            <Button className="text-black"><a href="/shop">Shop</a></Button>
+            <Button className="text-black"><a href="/about">About</a></Button>
+            <Button className="text-black"><a href="/contact">Contact</a></Button>
           </motion.div>
 
           {/* Cart & Auth */}
@@ -100,7 +99,7 @@ const Header = () => {
               <AccountCircleIcon />
             </IconButton>
 
-            {/* Popover for Login/Signup */}
+            {/* Popover for Profile or Login/Signup */}
             <Popover
               id={id}
               open={open}
@@ -116,25 +115,42 @@ const Header = () => {
               }}
             >
               <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <Link href="/sign-in" style={{ textDecoration: 'none', width: '100%', marginBottom: '8px' }}>
-                  <Button variant="outlined" color="primary" fullWidth>
-                    Login
-                  </Button>
-                </Link>
-
-                <Link href="/sign-up" style={{ textDecoration: 'none', width: '100%' }}>
-                  <Button variant="contained" color="primary" fullWidth>
-                    Sign Up
-                  </Button>
-                </Link>
+                {hasToken ? (
+                  <>
+                    <Link href="/profile" style={{ textDecoration: 'none', width: '100%', marginBottom: '8px' }}>
+                      <Button variant="outlined" color="primary" fullWidth>
+                        Profile
+                      </Button>
+                    </Link>
+                    <Button variant="contained" color="primary" fullWidth onClick={() => {
+                      localStorage.removeItem('accessToken');
+                      setHasToken(false);
+                    }}>
+                      Logout
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/sign-in" style={{ textDecoration: 'none', width: '100%', marginBottom: '8px' }}>
+                      <Button variant="outlined" color="primary" fullWidth>
+                        Login
+                      </Button>
+                    </Link>
+                    <Link href="/sign-up" style={{ textDecoration: 'none', width: '100%' }}>
+                      <Button variant="contained" color="primary" fullWidth>
+                        Sign Up
+                      </Button>
+                    </Link>
+                  </>
+                )}
               </Box>
             </Popover>
 
             {/* Shopping Cart Icon */}
             <IconButton aria-label="cart" className="text-black">
-            <StyledBadge badgeContent={mounted ? totalItems : 0} color="primary" onClick={handleCartOpen}>
-              <ShoppingCartIcon />
-            </StyledBadge>
+              <StyledBadge badgeContent={mounted ? totalItems : 0} color="primary" onClick={handleCartOpen}>
+                <ShoppingCartIcon />
+              </StyledBadge>
             </IconButton>
           </motion.div>
 

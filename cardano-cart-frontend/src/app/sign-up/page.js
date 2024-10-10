@@ -1,5 +1,7 @@
 'use client'
-import * as React from 'react';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation'; // Import useRouter from Next.js
 import { CssVarsProvider, extendTheme, useColorScheme } from '@mui/joy/styles';
 import GlobalStyles from '@mui/joy/GlobalStyles';
 import CssBaseline from '@mui/joy/CssBaseline';
@@ -21,9 +23,11 @@ import  GoogleIcon  from './GoogleIcon';
 function ColorSchemeToggle(props) {
   const { onClick, ...other } = props;
   const { mode, setMode } = useColorScheme();
-  const [mounted, setMounted] = React.useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  React.useEffect(() => setMounted(true), []);
+
+
+  useEffect(() => setMounted(true), []);
 
   return (
     <IconButton
@@ -45,6 +49,52 @@ function ColorSchemeToggle(props) {
 const customTheme = extendTheme({ defaultColorScheme: 'dark' });
 
 export  default function JoySignInSideTemplate() {
+
+  const router = useRouter();
+
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [address, setAddress] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+
+  const handleEmailSignUp = async (event) => {
+    event.preventDefault();
+
+    const formData = new FormData();
+    formData.append('email', email);
+    formData.append('username', username);
+    formData.append('password', password);
+    formData.append('address', address);
+    formData.append('phone_number', phoneNumber);
+    formData.append('first_name', firstName);
+    formData.append('last_name', lastName);
+    
+    try {
+      const result = await fetch('http://127.0.0.1:8000/api/v1/users/register/', {
+        method: 'POST',
+        body: formData,
+      });
+  
+      
+      if (result.ok) {
+        alert('Sign up successful!');
+        router.push('/sign-in');
+        
+      }
+
+      const res = await result.json();
+      console.log(res);
+    } catch (error) {
+      console.error('Error during sign up:', error.message);
+      alert(error.message);
+    }
+      
+  };
+
+  
   return (
     <CssVarsProvider theme={customTheme} disableTransitionOnChange>
       <CssBaseline />
@@ -137,43 +187,34 @@ export  default function JoySignInSideTemplate() {
           
             <Stack sx={{ gap: 4, mt: 2 }}>
               <form
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  const formElements = event.currentTarget.elements;
-                  const data = {
-                    email: formElements.email.value,
-                    password: formElements.password.value,
-                    persistent: formElements.persistent.checked,
-                  };
-                  alert(JSON.stringify(data, null, 2));
-                }}
+                onSubmit={handleEmailSignUp}
               >
                 <FormControl required>
               <FormLabel> Username</FormLabel>
-              <Input type="name" name="username" />
+              <Input type="name" name="username" onChange={(e) => (setUsername(e.target.value))} />
             </FormControl> <FormControl required>
               </FormControl> <FormControl required>
               <FormLabel> First Name</FormLabel>
-              <Input type="name" name="first name" />
+              <Input type="name" name="first name" onChange={(e) => (setFirstName(e.target.value))} />
             </FormControl> <FormControl required>
                   <FormLabel>Last Name</FormLabel>
-                  <Input type="name" name="last name" />
+                  <Input type="name" name="last name" onChange={(e) => (setLastName(e.target.value))} />
                 </FormControl>
                 <FormControl required>
                   <FormLabel>Address</FormLabel>
-                  <Input type="address" name="address" />
+                  <Input type="address" name="address" onChange={(e) => (setAddress(e.target.value))} />
                 </FormControl>
                 <FormControl required>
                   <FormLabel>Phone Number</FormLabel>
-                  <Input type="tel" name="phone number" />
+                  <Input type="tel" name="phone number" onChange={(e) => (setPhoneNumber(e.target.value))} />
                 </FormControl>
                 <FormControl required>
                   <FormLabel>Email</FormLabel>
-                  <Input type="email" name="email" />
+                  <Input type="email" name="email" onChange={(e) => (setEmail(e.target.value))} />
                 </FormControl>
                 <FormControl required>
                   <FormLabel>Password</FormLabel>
-                  <Input type="password" name="password" />
+                  <Input type="password" name="password" onChange={(e) => (setPassword(e.target.value))} />
                 </FormControl>
                 <Stack sx={{ gap: 4, mt: 2 }}>
                   <Box
@@ -187,7 +228,7 @@ export  default function JoySignInSideTemplate() {
                    
                   </Box>
                   <Button type="submit" fullWidth>
-                    Sign in
+                    Sign up
                   </Button>
                 </Stack>
               </form>
