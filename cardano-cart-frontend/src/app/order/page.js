@@ -22,13 +22,17 @@ import {
   ListItem,
   ListItemText,
   Grid,
+  useMediaQuery,
+  useTheme
 } from '@mui/material';
 import Image from 'next/image';
 import { styled } from '@mui/material/styles';
+import { useRouter } from 'next/navigation';
 import Header from '../_components/Header';
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   fontWeight: 'bold',
+  padding: theme.spacing(1),
 }));
 
 const StatusChip = styled(Chip)(({ theme, status }) => ({
@@ -36,6 +40,7 @@ const StatusChip = styled(Chip)(({ theme, status }) => ({
     status === 'Delivered' ? theme.palette.success.main :
     status === 'Processing' ? theme.palette.warning.main :
     status === 'Shipped' ? theme.palette.info.main :
+    status === 'Pending Payment' ? theme.palette.error.main :
     theme.palette.grey[500],
   color: theme.palette.common.white,
 }));
@@ -43,6 +48,9 @@ const StatusChip = styled(Chip)(({ theme, status }) => ({
 const OrderPage = () => {
   const [orders, setOrders] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const router = useRouter();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   useEffect(() => {
     const storedOrders = localStorage.getItem('orders');
@@ -59,10 +67,14 @@ const OrderPage = () => {
     setSelectedOrder(null);
   };
 
+  const handleConfirmPayment = (orderId) => {
+    router.push(`/checkout/${orderId}?confirmPayment=true`);
+  };
+
   return (
     <Box sx={{ flexGrow: 1 }}>
       <Header />
-      <Container maxWidth="lg" sx={{ mt: 4 }}>
+      <Container maxWidth="lg" sx={{ mt: 4, px: { xs: 1, sm: 2, md: 3 } }}>
         <Typography variant="h4" gutterBottom>
           Your Orders
         </Typography>
@@ -70,11 +82,10 @@ const OrderPage = () => {
           <Typography variant="body1">You have no orders yet.</Typography>
         ) : (
           <TableContainer component={Paper}>
-            <Table sx={{ minWidth: 650 }} aria-label="orders table">
+            <Table size="small" aria-label="orders table">
               <TableHead>
                 <TableRow>
-                  <StyledTableCell>Order ID</StyledTableCell>
-                  <StyledTableCell align="right">Date</StyledTableCell>
+                  <StyledTableCell>ID</StyledTableCell>
                   <StyledTableCell align="right">Total</StyledTableCell>
                   <StyledTableCell align="center">Status</StyledTableCell>
                   <StyledTableCell align="center">Actions</StyledTableCell>
@@ -83,17 +94,24 @@ const OrderPage = () => {
               <TableBody>
                 {orders.map((order) => (
                   <TableRow key={order.id}>
-                    <TableCell component="th" scope="row">
-                      {order.id}
+                    <TableCell component="th" scope="row" sx={{ padding: 1 }}>
+                      {order.id.slice(0, 8)}...
                     </TableCell>
-                    <TableCell align="right">{order.date}</TableCell>
-                    <TableCell align="right">₳{order.total.toFixed(2)}</TableCell>
-                    <TableCell align="center">
-                      <StatusChip label={order.status} status={order.status} />
+                    <TableCell align="right" sx={{ padding: 1 }}>₳{order.total.toFixed(2)}</TableCell>
+                    <TableCell align="center" sx={{ padding: 1 }}>
+                      <StatusChip 
+                        label={order.status} 
+                        status={order.status} 
+                        size="small"
+                      />
                     </TableCell>
-                    <TableCell align="center">
-                      <Button variant="outlined" onClick={() => handleOpenDetails(order)}>
-                        View Details
+                    <TableCell align="center" sx={{ padding: 1 }}>
+                      <Button 
+                        variant="outlined" 
+                        onClick={() => handleOpenDetails(order)} 
+                        size="small"
+                      >
+                        View
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -104,34 +122,43 @@ const OrderPage = () => {
         )}
       </Container>
 
-      <Dialog open={Boolean(selectedOrder)} onClose={handleCloseDetails} maxWidth="md" fullWidth>
+      <Dialog open={Boolean(selectedOrder)} onClose={handleCloseDetails} maxWidth="sm" fullWidth>
         <DialogTitle>Order Details - #{selectedOrder?.id}</DialogTitle>
         <DialogContent>
-          <Typography variant="subtitle1" gutterBottom>
+          <Typography variant="subtitle2" gutterBottom>
             Date: {selectedOrder?.date}
           </Typography>
-          <Typography variant="subtitle1" gutterBottom>
-            Status: <StatusChip label={selectedOrder?.status} status={selectedOrder?.status} />
+          <Typography variant="subtitle2" gutterBottom>
+            Status: <StatusChip label={selectedOrder?.status} status={selectedOrder?.status} size="small" />
           </Typography>
-          <Typography variant="h6" sx={{ mt: 2, mb: 1 }}>
+          <Typography variant="subtitle2" gutterBottom>
+            Payment: 
+            <Chip 
+              label={selectedOrder?.isPaid ? "Paid" : "Unpaid"} 
+              color={selectedOrder?.isPaid ? "success" : "error"} 
+              size="small"
+              sx={{ ml: 1 }}
+            />
+          </Typography>
+          <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>
             Items:
           </Typography>
-          <List>
+          <List disablePadding>
             <ListItem disablePadding>
               <Grid container spacing={2} alignItems="center">
                 <Grid item xs={3}>
                   <Image
                     src={selectedOrder?.product.image || '/placeholder.svg'}
                     alt={selectedOrder?.product.name}
-                    width={80}
-                    height={80}
+                    width={60}
+                    height={60}
                     layout="responsive"
                   />
                 </Grid>
                 <Grid item xs={9}>
                   <ListItemText
                     primary={selectedOrder?.product.name}
-                    secondary={`Quantity: ${selectedOrder?.quantity} - Price: ₳${selectedOrder?.product.price.toFixed(2)}`}
+                    secondary={`Qty: ${selectedOrder?.quantity} - Price: ₳${selectedOrder?.product.price.toFixed(2)}`}
                   />
                 </Grid>
               </Grid>
@@ -140,6 +167,17 @@ const OrderPage = () => {
           <Typography variant="h6" sx={{ mt: 2 }}>
             Total: ₳{selectedOrder?.total.toFixed(2)}
           </Typography>
+          {!selectedOrder?.isPaid && (
+            <Button
+              variant="contained"
+              color="primary"
+              fullWidth
+              sx={{ mt: 2 }}
+              onClick={() => handleConfirmPayment(selectedOrder.id)}
+            >
+              Confirm Payment
+            </Button>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDetails}>Close</Button>

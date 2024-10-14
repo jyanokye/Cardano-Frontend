@@ -1,6 +1,20 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { Typography, IconButton, AppBar, Badge, Toolbar, Button, Box, Popover, Link } from '@mui/material';
+import { 
+  Typography, 
+  IconButton, 
+  AppBar, 
+  Badge, 
+  Toolbar, 
+  Button, 
+  Box, 
+  Popover, 
+  Link,
+  Drawer,
+  List,
+  ListItem,
+  ListItemText
+} from '@mui/material';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import MenuIcon from '@mui/icons-material/Menu';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
@@ -12,16 +26,16 @@ import CartDrawer from './CartDrawer';
 const Header = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [cartOpen, setCartOpen] = useState(false);
-  const [hasToken, setHasToken] = useState(false); // Track access token state
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [hasToken, setHasToken] = useState(false);
   const { totalItems } = useCart();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    // Check for access_token in localStorage
     const token = localStorage.getItem('accessToken');
     if (token) {
-      setHasToken(true); // Set token status
+      setHasToken(true);
     }
   }, []);
 
@@ -39,6 +53,10 @@ const Header = () => {
 
   const handleCartClose = () => {
     setCartOpen(false);
+  };
+
+  const handleMobileMenuToggle = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
   };
 
   if (!mounted) {
@@ -69,6 +87,13 @@ const Header = () => {
     },
   };
 
+  const menuItems = [
+    { text: 'Home', href: '/' },
+    { text: 'Shop', href: '/shop' },
+    { text: 'Orders', href: '/order' },
+    { text: 'Cart', href: '/cart' },
+  ];
+
   return (
     <AppBar position="static" color="transparent" className="bg-white shadow-md">
       <Toolbar className="flex justify-between items-center">
@@ -86,14 +111,11 @@ const Header = () => {
         <motion.div className="flex items-center space-x-4" variants={fadeInFromLeft} initial="hidden" animate="visible">
           {/* Menu Links */}
           <motion.div className="hidden md:flex space-x-4" variants={fadeInFromLeft}>
-
-            <Button className="text-black"><a href="/">Home</a></Button>
-            <Button className="text-black"><a href="/shop">Shop</a></Button>
-            <Button className="text-black"><a href='/orders'>Orders</a></Button>
-            <Button className="text-black"><a href='/cart'>Cart</a></Button>
-            <Button className="text-black"><a href="/about">About</a></Button>
-            <Button className="text-black"><a href="/contact">Contact</a></Button>
-              
+            {menuItems.map((item, index) => (
+              <Button key={index} className="text-black">
+                <a href={item.href}>{item.text}</a>
+              </Button>
+            ))}
           </motion.div>
 
           {/* Cart & Auth */}
@@ -158,14 +180,36 @@ const Header = () => {
             </IconButton>
           </motion.div>
 
-          {/* Mobile Menu */}
+          {/* Mobile Menu Icon */}
           <motion.div className="md:hidden" variants={fadeInFromLeft}>
-            <IconButton edge="start" color="inherit" aria-label="menu">
+            <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleMobileMenuToggle}>
               <MenuIcon className="text-black" />
             </IconButton>
           </motion.div>
         </motion.div>
         <CartDrawer open={cartOpen} onClose={handleCartClose} />
+
+        {/* Mobile Menu Drawer */}
+        <Drawer
+          anchor="right"
+          open={mobileMenuOpen}
+          onClose={handleMobileMenuToggle}
+        >
+          <Box
+            sx={{ width: 250 }}
+            role="presentation"
+            onClick={handleMobileMenuToggle}
+            onKeyDown={handleMobileMenuToggle}
+          >
+            <List>
+              {menuItems.map((item, index) => (
+                <ListItem button key={index} component="a" href={item.href}>
+                  <ListItemText primary={item.text} />
+                </ListItem>
+              ))}
+            </List>
+          </Box>
+        </Drawer>
       </Toolbar>
     </AppBar>
   );

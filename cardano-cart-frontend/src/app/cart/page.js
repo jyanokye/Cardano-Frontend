@@ -17,6 +17,8 @@ import {
   IconButton,
   Button,
   TextField,
+  useMediaQuery,
+  useTheme
 } from '@mui/material';
 import { Add, Remove, Close } from '@mui/icons-material';
 import { useCart } from "react-use-cart";
@@ -24,6 +26,8 @@ import Header from '../_components/Header';
 
 const CartPage = () => {
   const [mounted, setMounted] = useState(false);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   useEffect(() => {
     setMounted(true);
@@ -51,20 +55,20 @@ const CartPage = () => {
         <Grid container spacing={3}>
           <Grid item xs={12}>
             <TableContainer component={Paper}>
-              <Table sx={{ minWidth: 650 }} aria-label="cart table">
+              <Table sx={{ minWidth: isMobile ? 300 : 650 }} aria-label="cart table">
                 <TableHead>
                   <TableRow>
                     <TableCell>Product</TableCell>
-                    <TableCell align="right">Price</TableCell>
+                    {!isMobile && <TableCell align="right">Price</TableCell>}
                     <TableCell align="center">Quantity</TableCell>
-                    <TableCell align="right">Subtotal</TableCell>
+                    {!isMobile && <TableCell align="right">Subtotal</TableCell>}
                     <TableCell align="center">Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {isEmpty ? (
                     <TableRow>
-                      <TableCell colSpan={5} align="center">
+                      <TableCell colSpan={isMobile ? 3 : 5} align="center">
                         Your cart is empty.
                       </TableCell>
                     </TableRow>
@@ -79,13 +83,13 @@ const CartPage = () => {
                             <Image
                               src={item.image || '/placeholder.svg'}
                               alt={item.name}
-                              width={80}
-                              height={80}
+                              width={60}
+                              height={60}
                             />
-                            <Typography sx={{ ml: 2 }}>{item.name}</Typography>
+                            <Typography sx={{ ml: 2 }} variant={isMobile ? "body2" : "body1"}>{item.name}</Typography>
                           </Box>
                         </TableCell>
-                        <TableCell align="right">₳{item.price}</TableCell>
+                        {!isMobile && <TableCell  align="right">₳{item.price}</TableCell>}
                         <TableCell align="center">
                           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <IconButton size="small" onClick={() => updateItemQuantity(item.id, Math.max(item.quantity - 1, 1))}>
@@ -103,13 +107,13 @@ const CartPage = () => {
                             </IconButton>
                           </Box>
                         </TableCell>
-                        <TableCell align="right">₳{(item.price * item.quantity)}</TableCell>
+                        {!isMobile && <TableCell align="right">₳{(item.price * item.quantity)}</TableCell>}
                         <TableCell align="center">
                           <Link href={`/checkout/${item.id}`} passHref>
                             <Button
                               variant="contained"
                               color="primary"
-                              size="small"
+                              size={isMobile ? "small" : "medium"}
                             >
                               Checkout
                             </Button>

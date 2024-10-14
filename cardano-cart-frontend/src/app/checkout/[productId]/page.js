@@ -14,65 +14,61 @@ import {
   DialogContent,
   DialogActions,
   Box,
+  useMediaQuery,
+  useTheme
 } from '@mui/material';
 import { ContentCopy, Check } from '@mui/icons-material';
 import { useCart } from "react-use-cart";
 import QRCode from "react-qr-code";
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Header from '../../_components/Header';
 
-import { fetchProductSeller, completeOrder } from '../../../../utils/_products'; 
-
-
 const Checkout = () => {
-  const access_token = localStorage.getItem('accessToken'); // Assuming you store the token in localStorage
-  const [error, setError] = useState(null);
   const { productId } = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { items, removeItem, updateItemQuantity } = useCart();
   const [openDialog, setOpenDialog] = useState(false);
   const [transactionId, setTransactionId] = useState('');
   const [copied, setCopied] = useState(false);
+  const [order, setOrder] = useState(null);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
+  const walletAddress = 'addr1v9w8x44wkuqujvv3mxfshqtvk7ymwfm8luxv04q7z8373g52ujk0';
 
-  const [walletAddress, setWalletAddress] = useState('');
-
-  const product = items.find(item => item.id === parseInt(productId, 10));
-
+  const isConfirmingPayment = searchParams.get('confirmPayment') === 'true';
 
   useEffect(() => {
-    if (!product) {
-      router.push('/cart');
-      return;
-    }
-
-    // Fetch the seller's wallet address
-    const getWalletAddress = async () => {
-      try {
-        const sellerWalletId = await fetchProductSeller(productId, access_token);  // Fetch the wallet ID
-        if (sellerWalletId.length > 0){
-          setWalletAddress(sellerWalletId);
-        }else{
-          setWalletAddress('No Address Found')
-        }
-          // Update the wallet address in state
-      } catch (err) {
-        console.error('Failed to fetch wallet address:', err);
-        setError('Failed to load wallet address. Please try again.');  // Handle error
+    if (isConfirmingPayment) {
+      const orders = JSON.parse(localStorage.getItem('orders') || '[]');
+      const existingOrder = orders.find(o => o.id === productId);
+      if (existingOrder) {
+        setOrder(existingOrder);
+      } else {
+        router.push('/orders');
       }
-    };
+    } else {
+      const product = items.find(item => item.id === parseInt(productId, 10));
+      if (product) {
+        setOrder({
+          id: Date.now().toString(),
+          date: new Date().toISOString().split('T')[0],
+          product: product,
+          quantity: product.quantity,
+          total: product.price * product.quantity,
+          status: 'Pending Payment',
+          isPaid: false,
+        });
+      } else {
+        router.push('/cart');
+      }
+    }
+  }, [productId, items, router, isConfirmingPayment]);
 
-    getWalletAddress();
-  }, [product, productId, router, access_token]);
-
-  if (!product) {
+  if (!order) {
     return null;
   }
-
-
-
-  const total = product.price * product.quantity;
-  const quantity = product.quantity;
 
   const handleCopyAddress = () => {
     navigator.clipboard.writeText(walletAddress);
@@ -91,42 +87,51 @@ const Checkout = () => {
 
   const handleSubmitTransaction = () => {
     console.log('Transaction ID submitted:', transactionId);
-  
-    const orderData = {
-      product: productId,  // Ensure productId is correctly set
-      quantity: quantity,   // Ensure quantity is correctly set
-      shipping_address: 'Ahodwo Oasis of Love street', // Replace with actual shipping address
+    handleCloseDialog();
+    
+    const updatedOrder = {
+      ...order,
+      status: 'Processing',
+      isPaid: true,
+      transactionId: transactionId
     };
-  
-    console.log('Order Data:', orderData);
-  
-    // Call the function to complete the order and verify payment
-    completeOrder(orderData, transactionId, access_token)
-      .then(paymentResult => {
-        console.log('Payment completed successfully:', paymentResult);
-        // Handle success, e.g., show a success message, redirect, etc.
-  
-        handleCloseDialog();
-        removeItem(productId); // Use productId here, not product.id
-        alert('Payment confirmed! Thank you for your purchase.');
-        router.push('/orders');
-      })
-      .catch(error => {
-        console.error('Error completing order and payment:', error);
-        // Handle error, e.g., show an error message, etc.
-        alert('An error occurred: ' + (error.response ? error.response.data : error.message));
-      });
+
+    const existingOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+    const updatedOrders = isConfirmingPayment
+      ? existingOrders.map(o => o.id === order.id ? updatedOrder : o)
+      : [...existingOrders, updatedOrder];
+    
+    localStorage.setItem('orders', JSON.stringify(updatedOrders));
+
+    if (!isConfirmingPayment) {
+      removeItem(order.product.id);
+    }
+    
+    alert('Payment confirmed! Thank you for your purchase.');
+    router.push('/order');
   };
-  
+
+  const handleCreateUnpaidOrder = () => {
+    const existingOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+    const updatedOrders = [...existingOrders, order];
+    localStorage.setItem('orders', JSON.stringify(updatedOrders));
+
+    if (!isConfirmingPayment) {
+      removeItem(order.product.id);
+    }
+
+    alert('Order created! Please complete the payment soon.');
+    router.push('/orders');
+  };
 
   return (
     <>
       <Header />
       <Container maxWidth="lg" sx={{ mt: 4 }}>
         <Typography variant="h4" gutterBottom>
-          Checkout
+          {isConfirmingPayment ? 'Confirm Payment' : 'Checkout'}
         </Typography>
-        <Grid container spacing={4}>
+        <Grid container spacing={2}>
           <Grid item xs={12} md={8}>
             <Paper sx={{ display: 'flex', flexDirection:'column', justifyContent:'center', alignItems:'center', p: 3 }}>
               <Typography variant="h6" gutterBottom>
@@ -136,11 +141,10 @@ const Checkout = () => {
                 Scan QR Code to make payment
               </Typography>
               <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
-                <QRCode value={walletAddress} size={256} />
+                <QRCode value={walletAddress} size={isMobile ? 200 : 256} />
               </Box>
               <Typography variant="body2" sx={{ mt: 2, wordBreak: 'break-all' }}>
-              {`${walletAddress.slice(0, 14)}...${walletAddress.slice(-10)}`}
-
+                {walletAddress}
                 <IconButton onClick={handleCopyAddress} size="small">
                   {copied ? <Check color="success" /> : <ContentCopy />}
                 </IconButton>
@@ -154,19 +158,19 @@ const Checkout = () => {
               </Typography>
               <Grid container spacing={2} sx={{ mb: 2 }}>
                 <Grid item xs={3}>
-                  <img src={product.image} alt={product.name} style={{ width: '100%' }} /> 
+                  <img src={order.product.image} alt={order.product.name} style={{ width: '100%' }} /> 
                 </Grid>
                 <Grid item xs={9}>
-                  <Typography variant="body1">{product.name}</Typography>
+                  <Typography variant="body1">{order.product.name}</Typography>
                   <Typography variant="body2" color="text.secondary">
-                    ₳{product.price}
+                    ₳{order.product.price.toFixed(2)}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                          Quantity: {quantity}
-                   </Typography>
+                    Quantity: {order.quantity}
+                  </Typography>
                 </Grid>
               </Grid>
-              <Typography variant="h6" sx={{ mt: 2 }}>Total: ₳{total}</Typography>
+              <Typography variant="h6" sx={{ mt: 2 }}>Total: ₳{order.total.toFixed(2)}</Typography>
               <Button
                 variant="contained"
                 color="primary"
@@ -176,6 +180,17 @@ const Checkout = () => {
               >
                 Confirm Payment
               </Button>
+              {!isConfirmingPayment && (
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  fullWidth
+                  sx={{ mt: 2 }}
+                  onClick={handleCreateUnpaidOrder}
+                >
+                  Create Order Without Payment
+                </Button>
+              )}
             </Paper>
           </Grid>
         </Grid>
