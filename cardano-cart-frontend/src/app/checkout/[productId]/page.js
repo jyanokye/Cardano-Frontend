@@ -22,7 +22,7 @@ import { useCart } from "react-use-cart";
 import QRCode from "react-qr-code";
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Header from '../../_components/Header';
-
+import CheckoutAnimation from '@/app/_components/CheckoutLoading';
 const Checkout = () => {
   const { productId } = useParams();
   const router = useRouter();
@@ -34,6 +34,7 @@ const Checkout = () => {
   const [order, setOrder] = useState(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [isLoading, setIsLoading] = useState(true);
 
   const walletAddress = 'addr1v9w8x44wkuqujvv3mxfshqtvk7ymwfm8luxv04q7z8373g52ujk0';
 
@@ -65,6 +66,14 @@ const Checkout = () => {
       }
     }
   }, [productId, items, router, isConfirmingPayment]);
+  useEffect(() => {
+    
+    setTimeout(() => setIsLoading(false), 2000);
+  }, []);
+
+  if (isLoading) {
+    return <CheckoutAnimation />;
+  }
 
   if (!order) {
     return null;

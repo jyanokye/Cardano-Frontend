@@ -29,6 +29,7 @@ import Image from 'next/image';
 import { styled } from '@mui/material/styles';
 import { useRouter } from 'next/navigation';
 import Header from '../_components/Header';
+import OrderAnimation from '../_components/OrderLoading';
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   fontWeight: 'bold',
@@ -51,6 +52,8 @@ const OrderPage = () => {
   const router = useRouter();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [mounted, setMounted] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const storedOrders = localStorage.getItem('orders');
@@ -58,6 +61,15 @@ const OrderPage = () => {
       setOrders(JSON.parse(storedOrders));
     }
   }, []);
+  useEffect(() => {
+    
+    setTimeout(() => setIsLoading(false), 2000);
+    setMounted(true);
+  }, []);
+
+  if (isLoading) {
+    return <OrderAnimation />;
+  }
 
   const handleOpenDetails = (order) => {
     setSelectedOrder(order);

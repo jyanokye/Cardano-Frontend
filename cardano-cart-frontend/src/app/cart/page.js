@@ -23,16 +23,24 @@ import {
 import { Add, Remove, Close } from '@mui/icons-material';
 import { useCart } from "react-use-cart";
 import Header from '../_components/Header';
+import CartAnimation from '@/app/_components/CartLoading';
 
 const CartPage = () => {
   const [mounted, setMounted] = useState(false);
   const theme = useTheme();
+  const [isLoading, setIsLoading] = useState(true);
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   useEffect(() => {
+    
+    setTimeout(() => setIsLoading(false), 2000);
     setMounted(true);
   }, []);
 
+  if (isLoading) {
+    return <CartAnimation />;
+  }
+  
   if (!mounted) {
     return null;
   }

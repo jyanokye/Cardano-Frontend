@@ -23,6 +23,7 @@ import { useCart } from "react-use-cart";
 import Header from '../_components/Header';
 import { products } from '../data';
 import { Search } from '@mui/icons-material';
+import ShopAnimation from '../_components/ShopLoading';
 
 const Shop = () => {
   const { addItem, items } = useCart();
@@ -33,6 +34,8 @@ const Shop = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
   const [alertOpen, setAlertOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [alertMessage, setAlertMessage] = useState('');
 
   const getItemQuantity = (productId) => {
@@ -40,7 +43,13 @@ const Shop = () => {
     return item ? item.quantity : 0;
   };
 
+  
+
+ 
+
   useEffect(() => {
+    setTimeout(() => setIsLoading(false), 2000);
+    setMounted(true);
     const filtered = products.filter(product => 
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
       product.price >= priceRange[0] &&
@@ -48,6 +57,13 @@ const Shop = () => {
     );
     setFilteredProducts(filtered);
   }, [searchTerm, priceRange]);
+  if (isLoading) {
+    return <ShopAnimation />;
+  }
+  
+  if (!mounted) {
+    return null;
+  }
 
   const handlePriceChange = (event, newValue) => {
     setPriceRange(newValue);
