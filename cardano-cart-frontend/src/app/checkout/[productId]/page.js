@@ -15,7 +15,9 @@ import {
   DialogActions,
   Box,
   useMediaQuery,
-  useTheme
+  useTheme,
+  Alert,
+  Snackbar
 } from '@mui/material';
 import { ContentCopy, Check } from '@mui/icons-material';
 import { useCart } from "react-use-cart";
@@ -23,6 +25,7 @@ import QRCode from "react-qr-code";
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Header from '../../_components/Header';
 import CheckoutAnimation from '@/app/_components/CheckoutLoading';
+
 const Checkout = () => {
   const { productId } = useParams();
   const router = useRouter();
@@ -35,6 +38,9 @@ const Checkout = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [isLoading, setIsLoading] = useState(true);
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+  const [alertSeverity, setAlertSeverity] = useState('success');
 
   const walletAddress = 'addr1v9w8x44wkuqujvv3mxfshqtvk7ymwfm8luxv04q7z8373g52ujk0';
 
@@ -47,7 +53,7 @@ const Checkout = () => {
       if (existingOrder) {
         setOrder(existingOrder);
       } else {
-        router.push('/orders');
+        router.push('/order');
       }
     } else {
       const product = items.find(item => item.id === parseInt(productId, 10));
@@ -61,13 +67,11 @@ const Checkout = () => {
           status: 'Pending Payment',
           isPaid: false,
         });
-      } else {
-        router.push('/cart');
-      }
+      } 
     }
   }, [productId, items, router, isConfirmingPayment]);
+
   useEffect(() => {
-    
     setTimeout(() => setIsLoading(false), 2000);
   }, []);
 
@@ -98,26 +102,37 @@ const Checkout = () => {
     console.log('Transaction ID submitted:', transactionId);
     handleCloseDialog();
     
-    const updatedOrder = {
-      ...order,
-      status: 'Processing',
-      isPaid: true,
-      transactionId: transactionId
-    };
+    // Simulating a successful transaction (you would replace this with actual transaction verification)
+    const isTransactionSuccessful = Math.random() < 0.8; // 80% success rate for demonstration
 
-    const existingOrders = JSON.parse(localStorage.getItem('orders') || '[]');
-    const updatedOrders = isConfirmingPayment
-      ? existingOrders.map(o => o.id === order.id ? updatedOrder : o)
-      : [...existingOrders, updatedOrder];
-    
-    localStorage.setItem('orders', JSON.stringify(updatedOrders));
+    if (isTransactionSuccessful) {
+      const updatedOrder = {
+        ...order,
+        status: 'Processing',
+        isPaid: true,
+        transactionId: transactionId
+      };
 
-    if (!isConfirmingPayment) {
-      removeItem(order.product.id);
+      const existingOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+      const updatedOrders = isConfirmingPayment
+        ? existingOrders.map(o => o.id === order.id ? updatedOrder : o)
+        : [...existingOrders, updatedOrder];
+      
+      localStorage.setItem('orders', JSON.stringify(updatedOrders));
+
+      if (!isConfirmingPayment) {
+        removeItem(order.product.id);
+      }
+      
+      setAlertSeverity('success');
+      setAlertMessage('Payment confirmed! Thank you for your purchase.');
+      setAlertOpen(true);
+      setTimeout(() => router.push('/orders'), 3000); // Updated line
+    } else {
+      setAlertSeverity('error');
+      setAlertMessage('Transaction failed. Please try again.');
+      setAlertOpen(true);
     }
-    
-    alert('Payment confirmed! Thank you for your purchase.');
-    router.push('/order');
   };
 
   const handleCreateUnpaidOrder = () => {
@@ -129,8 +144,17 @@ const Checkout = () => {
       removeItem(order.product.id);
     }
 
-    alert('Order created! Please complete the payment soon.');
-    router.push('/orders');
+    setAlertSeverity('info');
+    setAlertMessage('Order created! Please complete the payment soon.');
+    setAlertOpen(true);
+    setTimeout(() => router.push('/order'), 3000); // Updated line
+  };
+
+  const handleCloseAlert = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setAlertOpen(false);
   };
 
   return (
@@ -224,6 +248,11 @@ const Checkout = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      <Snackbar open={alertOpen} autoHideDuration={6000} onClose={handleCloseAlert}>
+        <Alert onClose={handleCloseAlert} severity={alertSeverity} sx={{ width: '100%' }}>
+          {alertMessage}
+        </Alert>
+      </Snackbar>
     </>
   );
 };
