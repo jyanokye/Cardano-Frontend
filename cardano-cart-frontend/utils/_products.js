@@ -1,8 +1,11 @@
 // product.js
 import axios from 'axios';
 
+const BASE_URL = 'http://localhost/api/v1';
+
 // Function to get all products
-export const getAllProducts = async (endpoint, access_token) => {
+export const getAllProducts = async (access_token) => {
+  const endpoint = `${BASE_URL}/products/`
   console.log(`Bearer ${access_token}`)
   try {
     const response = await axios.get(endpoint, {
@@ -20,7 +23,8 @@ export const getAllProducts = async (endpoint, access_token) => {
 
 
 // function to create a new product
-export const createProduct = async (endpoint, productData, access_token) => {
+export const createProduct = async (productData, access_token) => {
+  const endpoint = `${BASE_URL}/products/`
   try {
     const response = await axios.post(endpoint, productData, {
       headers: {
@@ -38,6 +42,7 @@ export const createProduct = async (endpoint, productData, access_token) => {
 
 // function to get user
 export const getUser = async (endpoint, access_token) => {
+  
   try {
     const response = await axios.get(endpoint, {
       headers: {
@@ -119,7 +124,7 @@ export const fetchProductSeller = async (product_id, access_token) => {
 
 // make an order
 
-const BASE_URL = 'http://localhost/api/v1';
+
 
 export const completeOrder = async (orderData, transactionId, access_token) => {
   try {
@@ -140,9 +145,18 @@ export const completeOrder = async (orderData, transactionId, access_token) => {
 
     console.log('Order created successfully with ID:', orderId);
 
-    // Step 2: Send POST request to verify payment
-    const paymentResponse = await axios.post(`${BASE_URL}/payments/verify_payment/${orderId}/`, {
-      transaction_id: transactionId,
+    
+  } catch (error) {
+    console.error('Error completing order:', error.response ? error.response.data : error.message);
+    throw error;  // Rethrow the error for further handling
+  }
+};
+
+
+export const verifyPayment = async(order_id, transaction_id, access_token) => {
+  try{
+    const paymentResponse = await axios.post(`${BASE_URL}/payments/verify_payment/${order_id}/`, {
+      transaction_id: transaction_id,
     }, {
       headers: {
         'Content-Type': 'application/json',
@@ -155,8 +169,26 @@ export const completeOrder = async (orderData, transactionId, access_token) => {
     console.log('Payment verification result:', paymentResult);
 
     return paymentResult;  // Return the payment verification result
-  } catch (error) {
-    console.error('Error completing order:', error.response ? error.response.data : error.message);
+  }catch(error){
+    console.error('Error verifying payment:', error.response ? error.response.data : error.message);
     throw error;  // Rethrow the error for further handling
   }
 };
+
+
+// get all orders
+export const getAllOrders = async (endpoint, access_token) => {
+  try {
+    const response = await axios.get(endpoint, {
+      headers: {
+        Authorization: `Bearer ${access_token}`
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    throw error;
+  }
+};
+
+

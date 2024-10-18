@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Typography, Button, Box, Grid, TextField, Alert, Snackbar, Card, CardContent, CardMedia, CardActions, useTheme, useMediaQuery } from '@mui/material';
 import { ThemeProvider } from '@mui/material/styles';
 import Header from './_components/Header';
@@ -11,7 +11,9 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { ArrowBackIos, ArrowForwardIos } from '@mui/icons-material';
 import { useCart } from "react-use-cart";
-import { products } from './data';
+import { current_products } from './data';
+
+import { getAllProducts } from '../../utils/_products';
 
 const fadeInEffect = {
   hidden: { opacity: 0, y: 20 },
@@ -25,13 +27,13 @@ const fadeInEffect = {
   },
 };
 
-const ProductCard = ({ name, image, price, onAddToCart }) => {
+const ProductCard = ({ id, name, image, price, onAddToCart }) => {
   const { addItem } = useCart();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const handleAddToCart = () => {
-    addItem({ id: name, name, price, image });
+    addItem({ id: id, name, price, image });
     onAddToCart(`${name} added to cart successfully!`);
   };
 
@@ -105,6 +107,30 @@ const Home = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
+
+  // fetch products from the backend
+  const [products, setProducts] = useState(current_products);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      if (typeof window !== 'undefined') {
+        const access_token = localStorage.getItem('accessToken');
+        console.log(access_token); // should log access_token correctly
+        if (access_token) {
+          try {
+            
+            const fetchedProducts = await getAllProducts(access_token);
+            setProducts(fetchedProducts);
+            console.log(fetchedProducts)
+          } catch (error) {
+            console.error('Error fetching products:', error);
+          }
+        }
+      }
+    };
+  
+    fetchProducts();
+  }, []);
 
   const handleAddToCart = (message) => {
     setAlertMessage(message);
@@ -210,8 +236,9 @@ const Home = () => {
                 {products.map((product) => (
                   <Box key={product.id} sx={{ padding: '0 5px' }}>
                     <ProductCard
+                      id={product.id}
                       name={product.name}
-                      image={product.image}
+                      image={product.images[0].image_url}
                       price={product.price}
                       onAddToCart={handleAddToCart}
                     />
@@ -230,7 +257,7 @@ const Home = () => {
                 <Grid item xs={6} sm={4} md={3} lg={2} key={product.id}>
                   <ProductCard
                     name={product.name}
-                    image={product.image}
+                    image={product.images[0].image_url}
                     price={product.price}
                     onAddToCart={handleAddToCart}
                   />

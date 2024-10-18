@@ -25,8 +25,13 @@ import QRCode from "react-qr-code";
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Header from '../../_components/Header';
 import CheckoutAnimation from '@/app/_components/CheckoutLoading';
+import { completeOrder, fetchProductSeller, verifyPayment } from '../../../../utils/_products';
+
 
 const Checkout = () => {
+  const access_token = localStorage.getItem('accessToken'); // Assuming you store the token in localStorage
+
+
   const { productId } = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -41,10 +46,43 @@ const Checkout = () => {
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
   const [alertSeverity, setAlertSeverity] = useState('success');
+  const [error, setError] = useState('');
 
-  const walletAddress = 'addr1v9w8x44wkuqujvv3mxfshqtvk7ymwfm8luxv04q7z8373g52ujk0';
+  const [orderCreated, setOrderCreated] = useState(false);
+
+  const [walletAddress, setWalletAddress] = useState('');
 
   const isConfirmingPayment = searchParams.get('confirmPayment') === 'true';
+  const product = items.find(item => item.id === parseInt(productId, 10));
+
+  useEffect(() => {
+    if (!product) {
+      router.push('/cart');
+      return;
+    }
+
+    // Fetch the seller's wallet address
+    const getWalletAddress = async () => {
+      try {
+        const sellerWalletId = await fetchProductSeller(productId, access_token);  // Fetch the wallet ID
+        if (sellerWalletId.length > 0){
+          setWalletAddress(sellerWalletId);
+        }else{
+          setWalletAddress('No Address Found')
+        }
+          // Update the wallet address in state
+      } catch (err) {
+        console.error('Failed to fetch wallet address:', err);
+        setError('Failed to load wallet address. Please try again.');  // Handle error
+      }
+    };
+
+    getWalletAddress();
+  }, [product, productId, router, access_token]);
+
+  if (!product) {
+    return null;
+  }
 
   useEffect(() => {
     if (isConfirmingPayment) {
@@ -98,56 +136,57 @@ const Checkout = () => {
     setTransactionId('');
   };
 
-  const handleSubmitTransaction = () => {
-    console.log('Transaction ID submitted:', transactionId);
-    handleCloseDialog();
-    
-    // Simulating a successful transaction (you would replace this with actual transaction verification)
-    const isTransactionSuccessful = Math.random() < 0.8; // 80% success rate for demonstration
-
-    if (isTransactionSuccessful) {
-      const updatedOrder = {
-        ...order,
-        status: 'Processing',
-        isPaid: true,
-        transactionId: transactionId
-      };
-
-      const existingOrders = JSON.parse(localStorage.getItem('orders') || '[]');
-      const updatedOrders = isConfirmingPayment
-        ? existingOrders.map(o => o.id === order.id ? updatedOrder : o)
-        : [...existingOrders, updatedOrder];
-      
-      localStorage.setItem('orders', JSON.stringify(updatedOrders));
-
-      if (!isConfirmingPayment) {
-        removeItem(order.product.id);
-      }
-      
-      setAlertSeverity('success');
-      setAlertMessage('Payment confirmed! Thank you for your purchase.');
-      setAlertOpen(true);
-      setTimeout(() => router.push('/orders'), 3000); // Updated line
-    } else {
-      setAlertSeverity('error');
-      setAlertMessage('Transaction failed. Please try again.');
-      setAlertOpen(true);
-    }
-  };
 
   const handleCreateUnpaidOrder = () => {
-    const existingOrders = JSON.parse(localStorage.getItem('orders') || '[]');
-    const updatedOrders = [...existingOrders, order];
-    localStorage.setItem('orders', JSON.stringify(updatedOrders));
+    const orderData = {
+      product: productId,  // Ensure productId is correctly set
+      quantity: product.quantity,   // Ensure quantity is correctly set
+      shipping_address: 'Ahodwo Oasis of Love street', // Replace with actual shipping address
+    };
+  
+    console.log('Order Data:', orderData);
 
-    if (!isConfirmingPayment) {
-      removeItem(order.product.id);
-    }
+    // Call the function to complete the order and verify payment
+    completeOrder(orderData, transactionId, access_token)
+      .then(paymentResult => {
+        console.log('Payment completed successfully:', paymentResult);
+        // Handle success, e.g., show a success message, redirect, etc.
+        setOrderCreated(true);
+        setAlertSeverity('info');
+        setAlertMessage('Order created! Please complete the payment soon.');
+        setAlertOpen(true);
+      })
+      .catch(error => {
+        console.error('Error completing order and payment:', error);
+        // Handle error, e.g., show an error message, etc.
+        alert('An error occurred: ' + (error.response ? error.response.data : error.message));
+      });
+      handleCloseDialog();
+      removeItem(productId); // Use productId here, not product.id
+    
+  };
 
-    setAlertSeverity('info');
-    setAlertMessage('Order created! Please complete the payment soon.');
-    setAlertOpen(true);
-    setTimeout(() => router.push('/order'), 3000); // Updated line
+
+  const handleSubmitTransaction = () => {
+    console.log('Transaction ID submitted:', transactionId);
+    const orderId = order?.id;
+  
+    // Call the function to complete the order and verify payment
+    verifyPayment(orderId, transactionId, access_token)
+      .then(paymentResult => {
+        console.log('Payment completed successfully:', paymentResult);
+        // Handle success, e.g., show a success message, redirect, etc.
+  
+        alert('Payment confirmed! Thank you for your purchase.');
+        router.push('/orders');
+      })
+      .catch(error => {
+        console.error('Error completing order and payment:', error);
+        // Handle error, e.g., show an error message, etc.
+        alert('An error occurred: ' + (error.response ? error.response.data : error.message));
+      });
+      handleCloseDialog();
+      removeItem(productId); // Use productId here, not product.id
   };
 
   const handleCloseAlert = (event, reason) => {
@@ -155,6 +194,8 @@ const Checkout = () => {
       return;
     }
     setAlertOpen(false);
+    
+
   };
 
   return (
@@ -177,7 +218,8 @@ const Checkout = () => {
                 <QRCode value={walletAddress} size={isMobile ? 200 : 256} />
               </Box>
               <Typography variant="body2" sx={{ mt: 2, wordBreak: 'break-all' }}>
-                {walletAddress}
+              {`${walletAddress.slice(0, 14)}...${walletAddress.slice(-10)}`}
+
                 <IconButton onClick={handleCopyAddress} size="small">
                   {copied ? <Check color="success" /> : <ContentCopy />}
                 </IconButton>
@@ -191,20 +233,20 @@ const Checkout = () => {
               </Typography>
               <Grid container spacing={2} sx={{ mb: 2 }}>
                 <Grid item xs={3}>
-                  <img src={order.product.image} alt={order.product.name} style={{ width: '100%' }} /> 
+                  <img src={order.product.images[0].image_url} alt={order.product.name} style={{ width: '100%' }} /> 
                 </Grid>
                 <Grid item xs={9}>
                   <Typography variant="body1">{order.product.name}</Typography>
                   <Typography variant="body2" color="text.secondary">
-                    ₳{order.product.price.toFixed(2)}
+                    ₳{order.product.price}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Quantity: {order.quantity}
                   </Typography>
                 </Grid>
               </Grid>
-              <Typography variant="h6" sx={{ mt: 2 }}>Total: ₳{order.total.toFixed(2)}</Typography>
-              <Button
+              <Typography variant="h6" sx={{ mt: 2 }}>Total: ₳{order.total}</Typography>
+              {orderCreated && <Button
                 variant="contained"
                 color="primary"
                 fullWidth
@@ -212,8 +254,8 @@ const Checkout = () => {
                 onClick={handleConfirmPayment}
               >
                 Confirm Payment
-              </Button>
-              {!isConfirmingPayment && (
+              </Button>}
+              {!isConfirmingPayment && !orderCreated && (
                 <Button
                   variant="outlined"
                   color="secondary"
@@ -221,7 +263,7 @@ const Checkout = () => {
                   sx={{ mt: 2 }}
                   onClick={handleCreateUnpaidOrder}
                 >
-                  Create Order Without Payment
+                  Create Order
                 </Button>
               )}
             </Paper>

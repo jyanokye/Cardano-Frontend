@@ -89,9 +89,10 @@ const Header = () => {
 
   const menuItems = [
     { text: 'Home', href: '/' },
+    { text: 'ABout', href: '/about' },
     { text: 'Shop', href: '/shop' },
-    { text: 'Orders', href: '/order' },
-    { text: 'Cart', href: '/cart' },
+    { text: 'Orders', href: '/orders' },
+    
   ];
 
   return (
@@ -116,6 +117,7 @@ const Header = () => {
                 <a href={item.href}>{item.text}</a>
               </Button>
             ))}
+
           </motion.div>
 
           {/* Cart & Auth */}

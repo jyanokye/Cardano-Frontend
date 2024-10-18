@@ -21,16 +21,18 @@ import {
 } from '@mui/material';
 import { useCart } from "react-use-cart";
 import Header from '../_components/Header';
-import { products } from '../data';
+import { current_products } from '../data';
 import { Search } from '@mui/icons-material';
 import ShopAnimation from '../_components/ShopLoading';
+import { getAllProducts } from '../../../utils/_products';
 
 const Shop = () => {
   const { addItem, items } = useCart();
   const [searchTerm, setSearchTerm] = useState('');
   const [priceRange, setPriceRange] = useState([0, 1000]);
-  const [filteredProducts, setFilteredProducts] = useState(products);
   const theme = useTheme();
+  const [products, setProducts] = useState(current_products);
+  const [filteredProducts, setFilteredProducts] = useState(products);
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
   const [alertOpen, setAlertOpen] = useState(false);
@@ -44,6 +46,29 @@ const Shop = () => {
   };
 
   
+  // fetch products from the backend
+
+
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      if (typeof window !== 'undefined') {
+        const access_token = localStorage.getItem('accessToken');
+        console.log(access_token); // should log access_token correctly
+        if (access_token) {
+          try {
+            
+            const fetchedProducts = await getAllProducts(access_token);
+            setProducts(fetchedProducts);
+          } catch (error) {
+            console.error('Error fetching products:', error);
+          }
+        }
+      }
+    };
+  
+    fetchProducts();
+  }, []);
 
  
 
@@ -56,7 +81,7 @@ const Shop = () => {
       product.price <= priceRange[1]
     );
     setFilteredProducts(filtered);
-  }, [searchTerm, priceRange]);
+  }, [searchTerm, priceRange, products]);
   if (isLoading) {
     return <ShopAnimation />;
   }
@@ -133,9 +158,16 @@ const Shop = () => {
                     <CardMedia
                       component="img"
                       height={isMobile ? '100' : isTablet ? '120' : '140'}
-                      image={product.image}
+                      image={product.images[0].image_url}
                       alt={product.name}
-                      sx={{ objectFit: 'cover' }}
+                      sx={{
+                        objectFit: 'cover',
+                        height: {
+                          xs: '140px', // Mobile devices
+                          sm: '160px', // Tablets
+                          md: '180px', // Laptops/Desktops
+                        },
+                      }}
                     />
                     <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', p: 1 }}>
                       <Box>
@@ -143,7 +175,7 @@ const Shop = () => {
                           {product.name}
                         </Typography>
                         <Typography variant={isMobile ? "caption" : "body2"} color="text.secondary">
-                          ₳{product.price.toFixed(2)}
+                          ₳{product.price}
                         </Typography>
                       </Box>
                       <Button
