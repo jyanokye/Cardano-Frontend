@@ -198,7 +198,7 @@ const Home = () => {
                 smooth shopping experience with low fees and exclusive deals.
               </Typography>
               <Button variant="contained" color="primary" size="large">
-                Shop Now
+                <a href="/shop">Shop Now</a>
               </Button>
             </motion.div>
 

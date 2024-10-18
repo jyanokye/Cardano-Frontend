@@ -3,9 +3,10 @@ import axios from 'axios';
 
 const BASE_URL = 'http://localhost/api/v1';
 
+
 // Function to get all products
 export const getAllProducts = async (access_token) => {
-  const endpoint = `${BASE_URL}/products/`
+  const endpoint = `${BASE_URL}/products/`;
   console.log(`Bearer ${access_token}`)
   try {
     const response = await axios.get(endpoint, {
@@ -24,7 +25,8 @@ export const getAllProducts = async (access_token) => {
 
 // function to create a new product
 export const createProduct = async (productData, access_token) => {
-  const endpoint = `${BASE_URL}/products/`
+
+  const endpoint = `${BASE_URL}/products/`;
   try {
     const response = await axios.post(endpoint, productData, {
       headers: {
@@ -41,8 +43,9 @@ export const createProduct = async (productData, access_token) => {
 
 
 // function to get user
-export const getUser = async (endpoint, access_token) => {
-  
+
+export const getUser = async (user_id, access_token) => {
+  const endpoint = `${BASE_URL}/users/${user_id}/`;
   try {
     const response = await axios.get(endpoint, {
       headers: {
@@ -58,7 +61,8 @@ export const getUser = async (endpoint, access_token) => {
 
 
 // update user
-export const updateUser = async (endpoint, userData, access_token) => {
+export const updateUser = async (user_id, userData, access_token) => {
+  const endpoint = `${BASE_URL}/users/${user_id}/`;
   try {
     const response = await axios.put(endpoint, userData, {
       headers: {
@@ -73,7 +77,8 @@ export const updateUser = async (endpoint, userData, access_token) => {
 }
 
 // change user password
-export const updateUserPassword = async (endpoint, userPasswordData, access_token) => {
+export const updateUserPassword = async (user_id, userPasswordData, access_token) => {
+  const endpoint = `${BASE_URL}/users/${user_id}/`;
   try {
     const response = await axios.put(endpoint, userPasswordData, {
       headers: {
@@ -95,7 +100,7 @@ export const fetchProductSeller = async (product_id, access_token) => {
   try {
     // Step 1: Fetch the product by product_id
     const paymentResponse = await axios.post(
-      `http://localhost/api/v1/payments/get_address/${product_id}/`, 
+      `${BASE_URL}/payments/get_address/${product_id}/`, 
       {}, // Empty body for POST request
       {
         headers: {
@@ -177,7 +182,8 @@ export const verifyPayment = async(order_id, transaction_id, access_token) => {
 
 
 // get all orders
-export const getAllOrders = async (endpoint, access_token) => {
+export const getAllOrders = async (access_token) => {
+  const endpoint = `${BASE_URL}/orders/`;
   try {
     const response = await axios.get(endpoint, {
       headers: {
@@ -192,3 +198,18 @@ export const getAllOrders = async (endpoint, access_token) => {
 };
 
 
+// get current user
+export const getCurrentUser = async (access_token) => {
+  const endpoint = `${BASE_URL}/users/me/`;
+  try {
+    const response = await axios.get(endpoint, {
+      headers: {
+        Authorization: `Bearer ${access_token}`
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    throw error;
+  }
+};
