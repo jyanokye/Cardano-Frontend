@@ -28,8 +28,8 @@ import  GoogleIcon  from './GoogleIcon';
 
 import { Auth } from '../../../utils/_auth';
 
-// const BASE_URL = 'https://charming-ninnetta-knust-028ea081.koyeb.app/api/v1';
-const BASE_URL = 'http://127.0.0.1:8000/api/v1';
+const BASE_URL = 'https://charming-ninnetta-knust-028ea081.koyeb.app/api/v1';
+//const BASE_URL = 'http://127.0.0.1:8000/api/v1';
 
 const auth = new Auth();
 

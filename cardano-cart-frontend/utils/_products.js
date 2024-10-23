@@ -1,8 +1,8 @@
 // product.js
 import axios from 'axios';
 
-// const BASE_URL = 'https://charming-ninnetta-knust-028ea081.koyeb.app/api/v1';
-const BASE_URL = 'http://localhost/api/v1';
+const BASE_URL = 'https://charming-ninnetta-knust-028ea081.koyeb.app/api/v1';
+//const BASE_URL = 'http://localhost/api/v1';
 
 
 // Function to get all products
