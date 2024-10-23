@@ -29,7 +29,15 @@ import { completeOrder, fetchProductSeller, verifyPayment } from '../../../../ut
 
 
 const Checkout = () => {
-  const access_token = localStorage.getItem('accessToken');
+  const [access_token, setAccessToken] = useState(null);
+
+  useEffect(() => {
+    // This will only run on the client side
+    const data = localStorage.getItem('accessToken');
+    setAccessToken(data);
+  }, []);
+
+  
   const { productId } = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();

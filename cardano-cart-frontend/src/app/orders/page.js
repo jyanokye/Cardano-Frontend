@@ -64,7 +64,13 @@ const OrderPage = () => {
 
 
 
-  const access_token = localStorage.getItem('accessToken'); // Assuming you're storing accessToken in localStorage
+  const [access_token, setAccessToken] = useState(null);
+
+  useEffect(() => {
+    // This will only run on the client side
+    const data = localStorage.getItem('accessToken');
+    setAccessToken(data);
+  }, []);// Assuming you're storing accessToken in localStorage
 
   useEffect(() => {
     const fetchOrders = async () => {
