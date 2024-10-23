@@ -89,7 +89,7 @@ export  default function JoySignInSideTemplate() {
       }
 
       const res = await result.json();
-      console.log(res);
+      //console.log(res);
     } catch (error) {
       console.error('Error during sign up:', error.message);
       alert(error.message);

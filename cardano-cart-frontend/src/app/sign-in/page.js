@@ -79,7 +79,7 @@ export  default function JoySignInSideTemplate() {
   
     auth.Credentials(credentials, endpoint)
     .then(user => {
-      console.log('Authenticated user:', user)
+      //console.log('Authenticated user:', user)
 
       const accessToken = user.access;  // Adjust this based on your API response structure
     

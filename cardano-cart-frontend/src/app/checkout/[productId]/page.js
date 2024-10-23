@@ -144,12 +144,12 @@ const Checkout = () => {
       shipping_address: 'Ahodwo Oasis of Love street', // Replace with actual shipping address
     };
   
-    console.log('Order Data:', orderData);
+    //console.log('Order Data:', orderData);
 
     // Call the function to complete the order and verify payment
     completeOrder(orderData, access_token)
       .then(paymentResult => {
-        console.log('Payment completed successfully:', paymentResult);
+        //console.log('Payment completed successfully:', paymentResult);
         // Handle success, e.g., show a success message, redirect, etc.
         setOrderCreated(true);
         setAlertSeverity('info');
@@ -168,13 +168,13 @@ const Checkout = () => {
 
 
   const handleSubmitTransaction = () => {
-    console.log('Transaction ID submitted:', transactionId);
+    //console.log('Transaction ID submitted:', transactionId);
     const orderId = order?.id;
   
     // Call the function to complete the order and verify payment
     verifyPayment(orderId, transactionId, access_token)
       .then(paymentResult => {
-        console.log('Payment completed successfully:', paymentResult);
+        //console.log('Payment completed successfully:', paymentResult);
         // Handle success, e.g., show a success message, redirect, etc.
   
         alert('Payment confirmed! Thank you for your purchase.');

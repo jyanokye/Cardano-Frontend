@@ -8,14 +8,14 @@ const BASE_URL = 'https://charming-ninnetta-knust-028ea081.koyeb.app/api/v1';
 // Function to get all products
 export const getAllProducts = async (access_token) => {
   const endpoint = `${BASE_URL}/products/`;
-  console.log(`Bearer ${access_token}`)
+  //console.log(`Bearer ${access_token}`)
   try {
     const response = await axios.get(endpoint, {
       headers: {
         Authorization: `Bearer ${access_token}`
       }
     });
-    console.log(response.data);
+    //console.log(response.data);
     return response.data;
   } catch (error) {
     console.error('Error fetching products:', error);
@@ -111,7 +111,7 @@ export const fetchProductSeller = async (product_id, access_token) => {
     );
 
     const payment = paymentResponse.data;
-    console.log('Fetched product:', payment);
+    //console.log('Fetched product:', payment);
 
     // Check if seller ID is present
     const payment_address = payment.payment_address;
@@ -149,7 +149,7 @@ export const completeOrder = async (orderData, access_token) => {
       throw new Error('Order ID is not returned from the order creation response.');
     }
 
-    console.log('Order created successfully with ID:', orderId);
+    //console.log('Order created successfully with ID:', orderId);
 
     
   } catch (error) {
@@ -172,7 +172,7 @@ export const verifyPayment = async(order_id, transaction_id, access_token) => {
 
     const paymentResult = paymentResponse.data;
 
-    console.log('Payment verification result:', paymentResult);
+    //console.log('Payment verification result:', paymentResult);
 
     return paymentResult;  // Return the payment verification result
   }catch(error){

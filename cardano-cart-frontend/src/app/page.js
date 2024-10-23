@@ -115,13 +115,13 @@ const Home = () => {
     const fetchProducts = async () => {
       if (typeof window !== 'undefined') {
         const access_token = localStorage.getItem('accessToken');
-        console.log(access_token); // should log access_token correctly
+        //console.log(access_token); // should log access_token correctly
         if (access_token) {
           try {
             
             const fetchedProducts = await getAllProducts(access_token);
             setProducts(fetchedProducts);
-            console.log(fetchedProducts)
+            //console.log(fetchedProducts)
           } catch (error) {
             console.error('Error fetching products:', error);
           }

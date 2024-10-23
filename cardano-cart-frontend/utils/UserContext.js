@@ -16,7 +16,7 @@ export const UserProvider = ({ children }) => {
         try {
           // Fetch user data from the /me/ endpoint
           const userResponse = await getCurrentUser(access_token);
-          console.log(user)
+          //console.log(user)
           setUser(userResponse);
         } catch (error) {
           console.error('Error fetching user data:', error);
