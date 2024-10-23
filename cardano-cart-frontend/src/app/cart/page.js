@@ -26,6 +26,16 @@ import Header from '../_components/Header';
 import CartAnimation from '@/app/_components/CartLoading';
 
 const CartPage = () => {
+
+  const {
+    isEmpty,
+    cartTotal,
+    items,
+    updateItemQuantity,
+    removeItem,
+  } = useCart();
+
+  
   const [mounted, setMounted] = useState(false);
   const theme = useTheme();
   const [isLoading, setIsLoading] = useState(true);
@@ -45,14 +55,7 @@ const CartPage = () => {
     return null;
   }
   
-  const {
-    isEmpty,
-    cartTotal,
-    items,
-    updateItemQuantity,
-    removeItem,
-  } = useCart();
-
+ 
   return (
     <Box sx={{ flexGrow: 1 }}>
       <Header/>

@@ -29,13 +29,12 @@ import { completeOrder, fetchProductSeller, verifyPayment } from '../../../../ut
 
 
 const Checkout = () => {
-  const access_token = localStorage.getItem('accessToken'); // Assuming you store the token in localStorage
-
-
+  const access_token = localStorage.getItem('accessToken');
   const { productId } = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { items, removeItem, updateItemQuantity } = useCart();
+  
   const [openDialog, setOpenDialog] = useState(false);
   const [transactionId, setTransactionId] = useState('');
   const [copied, setCopied] = useState(false);
@@ -47,9 +46,7 @@ const Checkout = () => {
   const [alertMessage, setAlertMessage] = useState('');
   const [alertSeverity, setAlertSeverity] = useState('success');
   const [error, setError] = useState('');
-
   const [orderCreated, setOrderCreated] = useState(false);
-
   const [walletAddress, setWalletAddress] = useState('');
 
   const isConfirmingPayment = searchParams.get('confirmPayment') === 'true';
@@ -58,68 +55,47 @@ const Checkout = () => {
   useEffect(() => {
     if (!product) {
       router.push('/cart');
-      return;
-    }
-
-    // Fetch the seller's wallet address
-    const getWalletAddress = async () => {
-      try {
-        const sellerWalletId = await fetchProductSeller(productId, access_token);  // Fetch the wallet ID
-        if (sellerWalletId.length > 0){
-          setWalletAddress(sellerWalletId);
-        }else{
-          setWalletAddress('No Address Found')
+    } else {
+      // Fetch the seller's wallet address
+      const getWalletAddress = async () => {
+        try {
+          const sellerWalletId = await fetchProductSeller(productId, access_token);  
+          setWalletAddress(sellerWalletId.length > 0 ? sellerWalletId : 'No Address Found');
+        } catch (err) {
+          console.error('Failed to fetch wallet address:', err);
+          setError('Failed to load wallet address. Please try again.');
         }
-          // Update the wallet address in state
-      } catch (err) {
-        console.error('Failed to fetch wallet address:', err);
-        setError('Failed to load wallet address. Please try again.');  // Handle error
-      }
-    };
-
-    getWalletAddress();
+      };
+      getWalletAddress();
+    }
   }, [product, productId, router, access_token]);
-
-  if (!product) {
-    return null;
-  }
 
   useEffect(() => {
     if (isConfirmingPayment) {
       const orders = JSON.parse(localStorage.getItem('orders') || '[]');
       const existingOrder = orders.find(o => o.id === productId);
-      if (existingOrder) {
-        setOrder(existingOrder);
-      } else {
-        router.push('/order');
-      }
-    } else {
-      const product = items.find(item => item.id === parseInt(productId, 10));
-      if (product) {
-        setOrder({
-          id: Date.now().toString(),
-          date: new Date().toISOString().split('T')[0],
-          product: product,
-          quantity: product.quantity,
-          total: product.price * product.quantity,
-          status: 'Pending Payment',
-          isPaid: false,
-        });
-      } 
+      existingOrder ? setOrder(existingOrder) : router.push('/order');
+    } else if (product) {
+      setOrder({
+        id: Date.now().toString(),
+        date: new Date().toISOString().split('T')[0],
+        product: product,
+        quantity: product.quantity,
+        total: product.price * product.quantity,
+        status: 'Pending Payment',
+        isPaid: false,
+      });
     }
-  }, [productId, items, router, isConfirmingPayment]);
+  }, [productId, items, router, isConfirmingPayment, product]);
 
   useEffect(() => {
     setTimeout(() => setIsLoading(false), 2000);
   }, []);
 
-  if (isLoading) {
-    return <CheckoutAnimation />;
+  if (isLoading || !product || !order) {
+    return isLoading ? <CheckoutAnimation /> : null;
   }
 
-  if (!order) {
-    return null;
-  }
 
   const handleCopyAddress = () => {
     navigator.clipboard.writeText(walletAddress);
