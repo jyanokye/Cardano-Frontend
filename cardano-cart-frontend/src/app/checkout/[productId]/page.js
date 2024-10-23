@@ -147,7 +147,7 @@ const Checkout = () => {
     console.log('Order Data:', orderData);
 
     // Call the function to complete the order and verify payment
-    completeOrder(orderData, transactionId, access_token)
+    completeOrder(orderData, access_token)
       .then(paymentResult => {
         console.log('Payment completed successfully:', paymentResult);
         // Handle success, e.g., show a success message, redirect, etc.

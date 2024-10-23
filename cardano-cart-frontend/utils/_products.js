@@ -1,6 +1,7 @@
 // product.js
 import axios from 'axios';
 
+// const BASE_URL = 'https://charming-ninnetta-knust-028ea081.koyeb.app/api/v1';
 const BASE_URL = 'http://localhost/api/v1';
 
 
@@ -131,7 +132,7 @@ export const fetchProductSeller = async (product_id, access_token) => {
 
 
 
-export const completeOrder = async (orderData, transactionId, access_token) => {
+export const completeOrder = async (orderData, access_token) => {
   try {
     // Step 1: Send POST request to create the order
     const orderResponse = await axios.post(`${BASE_URL}/orders/`, orderData, {
