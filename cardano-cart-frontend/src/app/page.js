@@ -310,7 +310,7 @@ const Home = () => {
                   Revolutionizing e-commerce with Cardano blockchain technology.
                 </Typography>
               </Grid>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={6} sx={{ display: 'none' }}>
                 <Typography variant="h6" gutterBottom>
                   Quick Links
                 </Typography>
