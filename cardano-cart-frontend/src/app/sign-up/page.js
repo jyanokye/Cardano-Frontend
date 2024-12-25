@@ -195,8 +195,7 @@ export  default function JoySignInSideTemplate() {
                 <FormControl required>
               <FormLabel> Username</FormLabel>
               <Input type="name" name="username" onChange={(e) => (setUsername(e.target.value))} />
-            </FormControl> <FormControl required>
-              </FormControl> <FormControl required>
+            
               <FormLabel> First Name</FormLabel>
               <Input type="name" name="first name" onChange={(e) => (setFirstName(e.target.value))} />
             </FormControl> <FormControl required>

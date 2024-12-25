@@ -44,7 +44,7 @@ const CartPage = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   useEffect(() => {
-    setTimeout(() => setIsLoading(false), 2000);
+    setTimeout(() => setIsLoading(false), 200);
     setMounted(true);
   }, []);
 

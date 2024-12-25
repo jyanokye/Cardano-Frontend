@@ -26,18 +26,21 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Header from '../../_components/Header';
 import CheckoutAnimation from '@/app/_components/CheckoutLoading';
 import { completeOrder, fetchProductSeller, verifyPayment } from '../../../../utils/_products';
+import { useCardano } from '@cardano-foundation/cardano-connect-with-wallet';
 
 
+import { BrowserWallet, Transaction, MeshTxBuilder } from '@meshsdk/core';
 const Checkout = () => {
   const [access_token, setAccessToken] = useState(null);
+  const [wallet, setWallet] = useState(null);
+  
 
   useEffect(() => {
-    // This will only run on the client side
     const data = localStorage.getItem('accessToken');
+    
     setAccessToken(data);
   }, []);
 
-  
   const { productId } = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -57,14 +60,17 @@ const Checkout = () => {
   const [orderCreated, setOrderCreated] = useState(false);
   const [walletAddress, setWalletAddress] = useState('');
 
+
+
   const isConfirmingPayment = searchParams.get('confirmPayment') === 'true';
+  const isYoroiPayment = searchParams.get('YoroiPayment') === 'true';
   const product = items.find(item => item.id === parseInt(productId, 10));
+  
 
   useEffect(() => {
     if (!product) {
       router.push('/cart');
     } else {
-      // Fetch the seller's wallet address
       const getWalletAddress = async () => {
         try {
           const sellerWalletId = await fetchProductSeller(productId, access_token);  
@@ -77,9 +83,10 @@ const Checkout = () => {
       getWalletAddress();
     }
   }, [product, productId, router, access_token]);
-
+  const cardanoContext = useCardano();
+  
   useEffect(() => {
-    if (isConfirmingPayment) {
+    if (isConfirmingPayment || isYoroiPayment) {
       const orders = JSON.parse(localStorage.getItem('orders') || '[]');
       const existingOrder = orders.find(o => o.id === productId);
       existingOrder ? setOrder(existingOrder) : router.push('/order');
@@ -94,7 +101,7 @@ const Checkout = () => {
         isPaid: false,
       });
     }
-  }, [productId, items, router, isConfirmingPayment, product]);
+  }, [productId, items, router, isConfirmingPayment, product, isYoroiPayment]);
 
   useEffect(() => {
     setTimeout(() => setIsLoading(false), 2000);
@@ -103,7 +110,6 @@ const Checkout = () => {
   if (isLoading || !product || !order) {
     return isLoading ? <CheckoutAnimation /> : null;
   }
-
 
   const handleCopyAddress = () => {
     navigator.clipboard.writeText(walletAddress);
@@ -120,21 +126,15 @@ const Checkout = () => {
     setTransactionId('');
   };
 
-
   const handleCreateUnpaidOrder = () => {
     const orderData = {
-      product: productId,  // Ensure productId is correctly set
-      quantity: product.quantity,   // Ensure quantity is correctly set
-      shipping_address: 'Ahodwo Oasis of Love street', // Replace with actual shipping address
+      product: productId,
+      quantity: product.quantity,
+      shipping_address: 'Ahodwo Oasis of Love street',
     };
-  
-    //console.log('Order Data:', orderData);
 
-    // Call the function to complete the order and verify payment
     completeOrder(orderData, access_token)
       .then(paymentResult => {
-        //console.log('Payment completed successfully:', paymentResult);
-        // Handle success, e.g., show a success message, redirect, etc.
         setOrderCreated(true);
         setAlertSeverity('info');
         setAlertMessage('Order created! Please complete the payment soon.');
@@ -142,35 +142,87 @@ const Checkout = () => {
       })
       .catch(error => {
         console.error('Error completing order and payment:', error);
-        // Handle error, e.g., show an error message, etc.
-        alert('An error occurred: ' + (error.response ? error.response.data : error.message));
+        setAlertSeverity('error');
+        setAlertMessage('An error occurred: ' + (error.response ? error.response.data : error.message));
+        setAlertOpen(true);
       });
-      handleCloseDialog();
-      removeItem(productId); // Use productId here, not product.id
-    
+    handleCloseDialog();
+    removeItem(productId);
   };
 
-
-  const handleSubmitTransaction = () => {
-    //console.log('Transaction ID submitted:', transactionId);
+  const handleSubmitTransaction = (txId) => {
     const orderId = order?.id;
   
-    // Call the function to complete the order and verify payment
-    verifyPayment(orderId, transactionId, access_token)
+    verifyPayment(orderId, txId, access_token)
       .then(paymentResult => {
-        //console.log('Payment completed successfully:', paymentResult);
-        // Handle success, e.g., show a success message, redirect, etc.
-  
-        alert('Payment confirmed! Thank you for your purchase.');
-        router.push('/orders');
+        setAlertSeverity('success');
+        setAlertMessage('Payment confirmed! Thank you for your purchase.');
+        setAlertOpen(true);
+        setTimeout(() => router.push('/orders'), 2000);
       })
       .catch(error => {
         console.error('Error completing order and payment:', error);
-        // Handle error, e.g., show an error message, etc.
-        alert('An error occurred: ' + (error.response ? error.response.data : error.message));
+        setAlertSeverity('error');
+        setAlertMessage('An error occurred: ' + (error.response ? error.response.data : error.message));
+        setAlertOpen(true);
       });
-      handleCloseDialog();
-      removeItem(productId); // Use productId here, not product.id
+    handleCloseDialog();
+    removeItem(productId);
+  };
+
+  const handleYoroiPayment = async () => {
+    try {
+      if (!wallet) {
+        const connectedWallet = await BrowserWallet.enable('yoroi');
+        setWallet(connectedWallet);
+      }
+
+      if (!wallet) {
+        setAlertMessage('Failed to connect to Yoroi wallet');
+        setAlertOpen(true);
+        return;
+      }
+
+      const changeAddress = await wallet.getChangeAddress();
+      const utxos = await wallet.getUtxos();
+      const txBuilder = new MeshTxBuilder();
+
+      const lovelaceAmount = (order.total * 1000000).toString(); //This is to Convert ADA to Lovelace
+
+      const meshTxBody = {
+        outputs: [
+          {
+            address: "addr1v9v7jqa56t53lup99ze7s4856jfkpplkjukp4qghmvzp62csjk2rp",
+            amount: [{ unit: "lovelace", quantity: lovelaceAmount }],
+          },
+        ],
+        changeAddress: changeAddress,
+        extraInputs: utxos,
+        selectionConfig: {
+          threshold: "5000000",
+          strategy: "largestFirst",
+          includeTxFees: true,
+        },
+      };
+
+      console.log(`Sending ${order.total} ADA (${lovelaceAmount} Lovelace) to ${walletAddress}`);
+
+      const unsignedTx = await txBuilder.complete(meshTxBody);
+      const signedTx = await wallet.signTx(unsignedTx);
+      const txHash = await wallet.submitTx(signedTx);
+
+      if (txHash) {
+        console.log(`Transaction successful: ${txHash}`);
+        handleSubmitTransaction(txHash);
+      } else {
+        throw new Error('Transaction submission failed');
+      }
+    } catch (error) {
+      console.error('Yoroi payment error:', error);
+      setAlertSeverity('error');
+      setAlertMessage('Yoroi payment failed: ' + error.message);
+      setAlertOpen(true);
+    }
   };
 
   const handleCloseAlert = (event, reason) => {
@@ -178,8 +230,6 @@ const Checkout = () => {
       return;
     }
     setAlertOpen(false);
-    
-
   };
 
   return (
@@ -203,7 +253,6 @@ const Checkout = () => {
               </Box>
               <Typography variant="body2" sx={{ mt: 2, wordBreak: 'break-all' }}>
               {`${walletAddress.slice(0, 14)}...${walletAddress.slice(-10)}`}
-
                 <IconButton onClick={handleCopyAddress} size="small">
                   {copied ? <Check color="success" /> : <ContentCopy />}
                 </IconButton>
@@ -230,15 +279,29 @@ const Checkout = () => {
                 </Grid>
               </Grid>
               <Typography variant="h6" sx={{ mt: 2 }}>Total: ₳{order.total}</Typography>
-              {orderCreated && <Button
-                variant="contained"
-                color="primary"
-                fullWidth
-                sx={{ mt: 2 }}
-                onClick={handleConfirmPayment}
-              >
-                Confirm Payment
-              </Button>}
+              {orderCreated && (
+                <>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    fullWidth
+                    sx={{ mt: 2 }}
+                    onClick={handleConfirmPayment}
+                  >
+                    Confirm Payment
+                  </Button>
+                 
+                    <Button
+                      variant="contained"
+                      color="secondary"
+                      fullWidth
+                      sx={{ mt: 2 }}
+                      onClick={handleYoroiPayment}
+                    >
+                      Pay with Yoroi
+                    </Button>
+                </>
+              )}
               {!isConfirmingPayment && !orderCreated && (
                 <Button
                   variant="outlined"
@@ -269,7 +332,7 @@ const Checkout = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button onClick={handleSubmitTransaction} color="primary">
+          <Button onClick={() => handleSubmitTransaction(transactionId)} color="primary">
             Submit
           </Button>
         </DialogActions>
