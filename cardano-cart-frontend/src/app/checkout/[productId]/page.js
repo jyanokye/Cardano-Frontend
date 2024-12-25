@@ -213,7 +213,8 @@ const Checkout = () => {
 
       if (txHash) {
         console.log(`Transaction successful: ${txHash}`);
-        handleSubmitTransaction(txHash);
+        setTransactionId(txHash);
+        handleSubmitTransaction(transactionId);
       } else {
         throw new Error('Transaction submission failed');
       }
