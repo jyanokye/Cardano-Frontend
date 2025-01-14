@@ -88,6 +88,7 @@ export  default function JoySignInSideTemplate() {
     
       // Save the access token (or other user data) to localStorage
       localStorage.setItem('accessToken', accessToken);
+      console.log(accessToken);
     
       // Redirect the user to the homepage
       router.push('/');

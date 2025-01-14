@@ -66,23 +66,34 @@ const Checkout = () => {
   const isYoroiPayment = searchParams.get('YoroiPayment') === 'true';
   const product = items.find(item => item.id === parseInt(productId, 10));
   
-
   useEffect(() => {
     if (!product) {
       router.push('/cart');
-    } else {
-      const getWalletAddress = async () => {
-        try {
-          const sellerWalletId = await fetchProductSeller(productId, access_token);  
-          setWalletAddress(sellerWalletId.length > 0 ? sellerWalletId : 'No Address Found');
-        } catch (err) {
-          console.error('Failed to fetch wallet address:', err);
-          setError('Failed to load wallet address. Please try again.');
-        }
-      };
-      getWalletAddress();
+      return;
     }
+
+    // Fetch the seller's wallet address
+    const getWalletAddress = async () => {
+      try {
+        const sellerWalletId = await fetchProductSeller(productId, access_token);  // Fetch the wallet ID
+        if (sellerWalletId.length > 0){
+          setWalletAddress(sellerWalletId);
+        }else{
+          setWalletAddress('No Address Found')
+        }
+          // Update the wallet address in state
+      } catch (err) {
+        console.error('Failed to fetch wallet address:', err);
+        setError('Failed to load wallet address. Please try again.');  // Handle error
+      }
+    };
+
+    getWalletAddress();
   }, [product, productId, router, access_token]);
+
+  if (!product) {
+    return null;
+  }
   const cardanoContext = useCardano();
   
   useEffect(() => {
@@ -91,8 +102,9 @@ const Checkout = () => {
       const existingOrder = orders.find(o => o.id === productId);
       existingOrder ? setOrder(existingOrder) : router.push('/order');
     } else if (product) {
+      const generatedOrderId = `${product.id}-${Date.now()}`; 
       setOrder({
-        id: Date.now().toString(),
+        id: generatedOrderId,
         date: new Date().toISOString().split('T')[0],
         product: product,
         quantity: product.quantity,
@@ -141,7 +153,7 @@ const Checkout = () => {
         setAlertOpen(true);
       })
       .catch(error => {
-        console.error('Error completing order and payment:', error);
+        console.error('Errory completing order and payment:', error);
         setAlertSeverity('error');
         setAlertMessage('An error occurred: ' + (error.response ? error.response.data : error.message));
         setAlertOpen(true);

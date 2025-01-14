@@ -14,12 +14,11 @@ import {
 } from '@mui/material';
 import { Delete, Add, Remove } from '@mui/icons-material';
 
-import { useCart } from './CardContext';
 import QRCode from "react-qr-code";
 
 import { verifyPayment } from '../../../utils/_products';
 
-const Checkout = () => {
+const Checkouts = () => {
   const { cart, removeFromCart, updateQuantity } = useCart();
   const [openDialog, setOpenDialog] = useState(false);
   const [transactionId, setTransactionId] = useState('');
@@ -168,4 +167,4 @@ const Checkout = () => {
   );
 };
 
-export default Checkout;
+export default Checkouts;

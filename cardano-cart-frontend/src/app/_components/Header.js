@@ -82,7 +82,7 @@ const Header = () => {
     { text: 'Shop', href: '/shop' },
     { text: 'Orders', href: '/orders' },
     { text: 'About', href: '/about' },
-    { text: 'Contact', href: '/contact' },
+    
   ]
 
   if (loading) {
@@ -159,12 +159,12 @@ const Header = () => {
                   </>
                 ) : (
                   <>
-                    <Link href="/sign-in" prefetch={false} style={{ textDecoration: 'none', width: '100%', marginBottom: '8px' }}>
+                    <Link href="/sign-in" prefetch="false" style={{ textDecoration: 'none', width: '100%', marginBottom: '8px' }}>
                       <Button variant="outlined" color="primary" fullWidth>
                         Login
                       </Button>
                     </Link>
-                    <Link href="/sign-up" prefetch={false} style={{ textDecoration: 'none', width: '100%' }}>
+                    <Link href="/sign-up" prefetch="false" style={{ textDecoration: 'none', width: '100%' }}>
                       <Button variant="contained" color="primary" fullWidth>
                         Sign Up
                       </Button>
