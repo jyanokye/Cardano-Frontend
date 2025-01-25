@@ -25,22 +25,13 @@ import QRCode from "react-qr-code";
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Header from '../../_components/Header';
 import CheckoutAnimation from '@/app/_components/CheckoutLoading';
-import { completeOrder, fetchProductSeller, verifyPayment } from '../../../../utils/_products';
-import { useCardano } from '@cardano-foundation/cardano-connect-with-wallet';
-
-
+import { completeOrder, fetchProductSeller, verifyPayment, getAllOrders } from '../../../../utils/_products';
+import CircularProgress from '@mui/material/CircularProgress';
 import { BrowserWallet, Transaction, MeshTxBuilder } from '@meshsdk/core';
+
 const Checkout = () => {
   const [access_token, setAccessToken] = useState(null);
   const [wallet, setWallet] = useState(null);
-  
-
-  useEffect(() => {
-    const data = localStorage.getItem('accessToken');
-    
-    setAccessToken(data);
-  }, []);
-
   const { productId } = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -50,77 +41,93 @@ const Checkout = () => {
   const [transactionId, setTransactionId] = useState('');
   const [copied, setCopied] = useState(false);
   const [order, setOrder] = useState(null);
+  const [detail, setCheckDetail] = useState(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [isLoading, setIsLoading] = useState(true);
   const [alertOpen, setAlertOpen] = useState(false);
+  const [isCreatingOrder, setIsCreatingOrder] = useState(false);
+
   const [alertMessage, setAlertMessage] = useState('');
   const [alertSeverity, setAlertSeverity] = useState('success');
   const [error, setError] = useState('');
   const [orderCreated, setOrderCreated] = useState(false);
   const [walletAddress, setWalletAddress] = useState('');
 
-
-
   const isConfirmingPayment = searchParams.get('confirmPayment') === 'true';
   const isYoroiPayment = searchParams.get('YoroiPayment') === 'true';
   const product = items.find(item => item.id === parseInt(productId, 10));
-  
+
   useEffect(() => {
-    if (!product) {
+    const data = localStorage.getItem('accessToken');
+    setAccessToken(data);
+  }, []);
+
+  useEffect(() => {
+    if (!product && !orderCreated) {
       router.push('/cart');
       return;
     }
 
-    // Fetch the seller's wallet address
     const getWalletAddress = async () => {
       try {
-        const sellerWalletId = await fetchProductSeller(productId, access_token);  // Fetch the wallet ID
-        if (sellerWalletId.length > 0){
+        const sellerWalletId = await fetchProductSeller(productId, access_token);
+        if (sellerWalletId.length > 0) {
           setWalletAddress(sellerWalletId);
-        }else{
-          setWalletAddress('No Address Found')
+        } else {
+          setWalletAddress('No Address Found');
         }
-          // Update the wallet address in state
       } catch (err) {
         console.error('Failed to fetch wallet address:', err);
-        setError('Failed to load wallet address. Please try again.');  // Handle error
+        setError('Failed to load wallet address. Please try again.');
       }
     };
 
     getWalletAddress();
-  }, [product, productId, router, access_token]);
-
-  if (!product) {
-    return null;
-  }
-  const cardanoContext = useCardano();
-  
-  useEffect(() => {
-    if (isConfirmingPayment || isYoroiPayment) {
-      const orders = JSON.parse(localStorage.getItem('orders') || '[]');
-      const existingOrder = orders.find(o => o.id === productId);
-      existingOrder ? setOrder(existingOrder) : router.push('/order');
-    } else if (product) {
-      const generatedOrderId = `${product.id}-${Date.now()}`; 
-      setOrder({
-        id: generatedOrderId,
-        date: new Date().toISOString().split('T')[0],
-        product: product,
-        quantity: product.quantity,
-        total: product.price * product.quantity,
-        status: 'Pending Payment',
-        isPaid: false,
-      });
-    }
-  }, [productId, items, router, isConfirmingPayment, product, isYoroiPayment]);
+  }, [product, productId, router, access_token, orderCreated]);
 
   useEffect(() => {
     setTimeout(() => setIsLoading(false), 2000);
   }, []);
 
-  if (isLoading || !product || !order) {
-    return isLoading ? <CheckoutAnimation /> : null;
+  const fetchRecentOrder = async () => {
+    if (access_token) {
+      try {
+        const allOrders = await getAllOrders(access_token);
+        if (allOrders && allOrders.length > 0) {
+          const recentOrder = allOrders[allOrders.length - 1];
+          setOrder(recentOrder);
+          setOrderCreated(true);
+          // Remove the item from the cart if it matches the order
+          if (product && product.id === recentOrder.product.id) {
+            removeItem(product.id);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch orders:', error);
+        setError('Failed to load recent order. Please try again.');
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (isConfirmingPayment || isYoroiPayment) {
+      fetchRecentOrder();
+    }
+  else if (product) { 
+    setCheckDetail({
+      date: new Date().toISOString().split('T')[0],
+      product: product,
+      quantity: product.quantity,
+      total: product.price * product.quantity,
+      status: 'Pending Payment',
+      isPaid: false,
+    });
+  }
+  }, [access_token, isConfirmingPayment, isYoroiPayment]);
+
+  if (isLoading) {
+    return <CheckoutAnimation />;
   }
 
   const handleCopyAddress = () => {
@@ -138,48 +145,50 @@ const Checkout = () => {
     setTransactionId('');
   };
 
-  const handleCreateUnpaidOrder = () => {
+  const handleCreateUnpaidOrder = async () => {
+    setIsCreatingOrder(true);
     const orderData = {
       product: productId,
       quantity: product.quantity,
       shipping_address: 'Ahodwo Oasis of Love street',
     };
 
-    completeOrder(orderData, access_token)
-      .then(paymentResult => {
-        setOrderCreated(true);
-        setAlertSeverity('info');
-        setAlertMessage('Order created! Please complete the payment soon.');
-        setAlertOpen(true);
-      })
-      .catch(error => {
-        console.error('Errory completing order and payment:', error);
-        setAlertSeverity('error');
-        setAlertMessage('An error occurred: ' + (error.response ? error.response.data : error.message));
-        setAlertOpen(true);
-      });
+    try {
+      await completeOrder(orderData, access_token);
+      setAlertSeverity('info');
+      setAlertMessage('Order created! Please complete the payment soon.');
+      setAlertOpen(true);
+      
+      // Fetch the recent order after creating the unpaid order
+      await fetchRecentOrder();
+      
+      // Remove the item from the cart after creating the order
+      removeItem(productId);
+    } catch (error) {
+      console.error('Error completing order and payment:', error);
+      setAlertSeverity('error');
+      setAlertMessage('An error occurred: ' + (error.response ? error.response.data : error.message));
+      setAlertOpen(true);
+    }
     handleCloseDialog();
-    removeItem(productId);
   };
 
-  const handleSubmitTransaction = (txId) => {
+  const handleSubmitTransaction = (txHash) => {
+    const transaction = txHash || transactionId
+    console.log('Transaction ID submitted:', transactionId);
     const orderId = order?.id;
   
-    verifyPayment(orderId, txId, access_token)
+    verifyPayment(orderId, transaction, access_token)
       .then(paymentResult => {
-        setAlertSeverity('success');
-        setAlertMessage('Payment confirmed! Thank you for your purchase.');
-        setAlertOpen(true);
-        setTimeout(() => router.push('/orders'), 2000);
+        console.log('Payment completed successfully:', paymentResult);
+        alert('Payment confirmed! Thank you for your purchase.');
+        router.push('/orders');
       })
       .catch(error => {
         console.error('Error completing order and payment:', error);
-        setAlertSeverity('error');
-        setAlertMessage('An error occurred: ' + (error.response ? error.response.data : error.message));
-        setAlertOpen(true);
+        alert('An error occurred: ' + (error.response ? error.response.data : error.message));
       });
     handleCloseDialog();
-    removeItem(productId);
   };
 
   const handleYoroiPayment = async () => {
@@ -199,12 +208,12 @@ const Checkout = () => {
       const utxos = await wallet.getUtxos();
       const txBuilder = new MeshTxBuilder();
 
-      const lovelaceAmount = (order.total * 1000000).toString(); //This is to Convert ADA to Lovelace
+      const lovelaceAmount = (order.total_amount * 1000000).toString();
 
       const meshTxBody = {
         outputs: [
           {
-            address: "addr1v9v7jqa56t53lup99ze7s4856jfkpplkjukp4qghmvzp62csjk2rp",
+            address: walletAddress,
             amount: [{ unit: "lovelace", quantity: lovelaceAmount }],
           },
         ],
@@ -213,11 +222,10 @@ const Checkout = () => {
         selectionConfig: {
           threshold: "5000000",
           strategy: "largestFirst",
-          includeTxFees: true,
         },
       };
 
-      console.log(`Sending ${order.total} ADA (${lovelaceAmount} Lovelace) to ${walletAddress}`);
+      console.log(`Sending ${order.total_amount} ADA (${lovelaceAmount} Lovelace) to ${walletAddress}`);
 
       const unsignedTx = await txBuilder.complete(meshTxBody);
       const signedTx = await wallet.signTx(unsignedTx);
@@ -226,7 +234,7 @@ const Checkout = () => {
       if (txHash) {
         console.log(`Transaction successful: ${txHash}`);
         setTransactionId(txHash);
-        handleSubmitTransaction(transactionId);
+        handleSubmitTransaction(txHash);
       } else {
         throw new Error('Transaction submission failed');
       }
@@ -252,58 +260,61 @@ const Checkout = () => {
         <Typography variant="h4" gutterBottom>
           {isConfirmingPayment ? 'Confirm Payment' : 'Checkout'}
         </Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={8}>
-            <Paper sx={{ display: 'flex', flexDirection:'column', justifyContent:'center', alignItems:'center', p: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                Payment
-              </Typography>
-              <Typography variant="body1" gutterBottom>
-                Scan QR Code to make payment
-              </Typography>
-              <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
-                <QRCode value={walletAddress} size={isMobile ? 200 : 256} />
-              </Box>
-              <Typography variant="body2" sx={{ mt: 2, wordBreak: 'break-all' }}>
-              {`${walletAddress.slice(0, 14)}...${walletAddress.slice(-10)}`}
-                <IconButton onClick={handleCopyAddress} size="small">
-                  {copied ? <Check color="success" /> : <ContentCopy />}
-                </IconButton>
-              </Typography>
-            </Paper>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                Your Order
-              </Typography>
-              <Grid container spacing={2} sx={{ mb: 2 }}>
-                <Grid item xs={3}>
-                  <img src={order.product.image} alt={order.product.name} style={{ width: '100%' }} /> 
-                </Grid>
-                <Grid item xs={9}>
-                  <Typography variant="body1">{order.product.name}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    ₳{order.product.price}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Quantity: {order.quantity}
-                  </Typography>
-                </Grid>
-              </Grid>
-              <Typography variant="h6" sx={{ mt: 2 }}>Total: ₳{order.total}</Typography>
-              {orderCreated && (
-                <>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    fullWidth
-                    sx={{ mt: 2 }}
-                    onClick={handleConfirmPayment}
-                  >
-                    Confirm Payment
-                  </Button>
+       
+          <Grid container spacing={2}>
+           
+            <Grid item xs={12} md={8}>
+              <Paper sx={{ display: 'flex', flexDirection:'column', justifyContent:'center', alignItems:'center', p: 3 }}>
+                <Typography variant="h6" gutterBottom>
+                  Payment
+                </Typography>
+                <Typography variant="body1" gutterBottom>
+                  Scan QR Code to make payment
+                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
+                  <QRCode value={walletAddress} size={isMobile ? 200 : 256} />
+                </Box>
+                <Typography variant="body2" sx={{ mt: 2, wordBreak: 'break-all' }}>
+                  {`${walletAddress.slice(0, 14)}...${walletAddress.slice(-10)}`}
+                  <IconButton onClick={handleCopyAddress} size="small">
+                    {copied ? <Check color="success" /> : <ContentCopy />}
+                  </IconButton>
+                </Typography>
+              </Paper>
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <Paper sx={{ p: 3 }}>
+                <Typography variant="h6" gutterBottom>
+                  Your Order
+                </Typography>
+                <Grid container spacing={2} sx={{ mb: 2 }}>
+                  <Grid item xs={3}>
                  
+                  <img src={detail.product.image} alt={detail.product.name} style={{ width: '100%' }} /> 
+              
+                  </Grid>
+                  <Grid item xs={9}>
+                    <Typography variant="body1">{detail.product.name}</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      ₳{detail.product.price}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Quantity: {detail.quantity}
+                    </Typography>
+                  </Grid>
+                </Grid>
+                <Typography variant="h6" sx={{ mt: 2 }}>Total: ₳{detail.total}</Typography>
+                {orderCreated && (
+                  <>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      fullWidth
+                      sx={{ mt: 2 }}
+                      onClick={handleConfirmPayment}
+                    >
+                      Confirm Payment
+                    </Button>
                     <Button
                       variant="contained"
                       color="secondary"
@@ -313,22 +324,31 @@ const Checkout = () => {
                     >
                       Pay with Yoroi
                     </Button>
-                </>
-              )}
-              {!isConfirmingPayment && !orderCreated && (
-                <Button
-                  variant="outlined"
-                  color="secondary"
-                  fullWidth
-                  sx={{ mt: 2 }}
-                  onClick={handleCreateUnpaidOrder}
-                >
-                  Create Order
-                </Button>
-              )}
-            </Paper>
+                  </>
+                )}
+                {!orderCreated && product && (
+          <Button
+            variant="contained"
+            color="primary"
+            fullWidth
+            sx={{ mt: 2 }}
+            onClick={handleCreateUnpaidOrder}
+            disabled={isCreatingOrder}
+          >
+           {isCreatingOrder ? (
+      <CircularProgress size={24} color="inherit" />
+    ) : (
+      'Create Order'
+    )}
+          </Button>
+        )}
+              </Paper>
+            </Grid>
           </Grid>
-        </Grid>
+        
+          
+       
+        
       </Container>
       <Dialog open={openDialog} onClose={handleCloseDialog}>
         <DialogTitle>Enter Transaction ID</DialogTitle>
@@ -345,7 +365,7 @@ const Checkout = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button onClick={() => handleSubmitTransaction(transactionId)} color="primary">
+          <Button onClick={() => handleSubmitTransaction()} color="primary">
             Submit
           </Button>
         </DialogActions>
@@ -360,3 +380,4 @@ const Checkout = () => {
 };
 
 export default Checkout;
+

@@ -23,8 +23,9 @@ import { motion } from 'framer-motion'
 import { styled } from '@mui/system'
 import { useCart } from 'react-use-cart'
 import CartDrawer from './CartDrawer'
+import { WalletContext } from './WalletContext'
 import { UserContext } from '../../../utils/UserContext' // Adjust the path as necessary
-import ConnectWalletButton from '../hooks/YoroiWallet'
+import ConnectWallet from '../hooks/YoroiWallet'
 
 const Header = () => {
   const [anchorEl, setAnchorEl] = useState(null)
@@ -32,6 +33,8 @@ const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const { totalItems } = useCart()
   const { user, loading, setUser } = useContext(UserContext)
+  const { isConnected, walletName, balance, connectWallet, disconnectWallet } =
+    useContext(WalletContext);
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget)
@@ -173,7 +176,7 @@ const Header = () => {
                 )}
               </Box>
             </Popover>
-            <ConnectWalletButton />
+            <ConnectWallet />
             {/* Shopping Cart Icon */}
             <IconButton aria-label="cart" className="text-black">
               <StyledBadge badgeContent={totalItems} color="primary" onClick={handleCartOpen}>

@@ -4,6 +4,7 @@ import "./globals.css";
 import { CartProvider} from "react-use-cart";
 import theme from "./_components/theme";
 import { ThemeProvider } from "@mui/material";
+import { WalletProvider } from "./_components/WalletContext";
 import { UserProvider } from "../../utils/UserContext"; // Import the correct provider
 
 // Load local fonts
@@ -34,11 +35,13 @@ export default function RootLayout({ children }) {
         </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
           <ThemeProvider theme={theme}>
+            <WalletProvider>
             <UserProvider>
               <CartProvider>
                 {children}
               </CartProvider>
             </UserProvider>
+            </WalletProvider>
           </ThemeProvider>
       
       </body>

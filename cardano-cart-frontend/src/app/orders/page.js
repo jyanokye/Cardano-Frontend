@@ -116,7 +116,7 @@ const OrderPage = () => {
     // Call the function to complete the order and verify payment
     verifyPayment(orderId, transactionId, access_token)
       .then(paymentResult => {
-        console.log('Payment completed successfully:', paymentResult);
+        console.log('Payment completed successfully:', orderId);
         // Handle success, e.g., show a success message, redirect, etc.
   
         alert('Payment confirmed! Thank you for your purchase.');
@@ -159,7 +159,7 @@ const OrderPage = () => {
                 {orders.map((order) => (
                   <TableRow key={order?.id}>
                     <TableCell component="th" scope="row" sx={{ padding: 1 }}>
-                      {order?.id}...
+                      {order?.id}
                     </TableCell>
 
                     <TableCell align="right" sx={{ padding: 1 }}>₳{order?.total_amount}</TableCell>

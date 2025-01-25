@@ -28,11 +28,13 @@ export const getAllProducts = async (access_token) => {
 export const createProduct = async (productData, access_token) => {
 
   const endpoint = `${BASE_URL}/products/`;
+  access_token = localStorage.getItem('accessToken');
   try {
     const response = await axios.post(endpoint, productData, {
       headers: {
-        Authorization: `Bearer ${access_token}`,
-        'Content-Type': 'application/json'
+         'Content-Type': 'application/json',
+        Authorization: `Bearer ${access_token}`
+       
       }
     });
     return response.data;
@@ -100,6 +102,7 @@ export const updateUserPassword = async (user_id, userPasswordData, access_token
 export const fetchProductSeller = async (product_id, access_token) => {
   try {
     // Step 1: Fetch the product by product_id
+    access_token = localStorage.getItem('accessToken');
     const paymentResponse = await axios.post(
       `${BASE_URL}/payments/get_address/${product_id}/`, 
       {}, // Empty body for POST request
@@ -161,7 +164,8 @@ export const completeOrder = async (orderData, access_token) => {
 
 export const verifyPayment = async(order_id, transaction_id, access_token) => {
   try{
-    const paymentResponse = await axios.post(`${BASE_URL}/payments/verify_payment/${order_id}/`, {
+    const paymentResponse = await axios.post(`${BASE_URL}/payments/verify_payment/${order_id}/`,
+       {
       transaction_id: transaction_id,
     }, {
       headers: {
@@ -185,6 +189,7 @@ export const verifyPayment = async(order_id, transaction_id, access_token) => {
 // get all orders
 export const getAllOrders = async (access_token) => {
   const endpoint = `${BASE_URL}/orders/`;
+  access_token = localStorage.getItem('accessToken');
   try {
     const response = await axios.get(endpoint, {
       headers: {

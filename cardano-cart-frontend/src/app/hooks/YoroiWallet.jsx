@@ -1,56 +1,67 @@
-'use client'
-import React, { useState } from 'react';
-import { BrowserWallet } from '@meshsdk/core';
+'use client';
+import React, { useContext } from 'react';
+import { WalletContext } from '../_components/WalletContext';
+import { ConnectWalletButton } from '@cardano-foundation/cardano-connect-with-wallet';
 
-function ConnectWalletButton() {
-  const [walletName, setWalletName] = useState('');
-  const [wallet, setWallet] = useState(null);
-  const [isConnected, setIsConnected] = useState(false);
-  const [balance, setBalance] = useState(null);
-
-  const handleConnectWallet = async () => {
-    try {
-      const wallet = await BrowserWallet.enable('yoroi');
-      const balance = await wallet.getBalance();
-      setWalletName('Yoroi');
-      setWallet(wallet);
-      setIsConnected(true);
-      localStorage.setItem('balance', balance);
-      localStorage.setItem('isConnected', true);
-      localStorage.setItem('wallet', wallet);
-     
-      if (balance && balance.length > 0) {
-        const lovelace = balance[0].quantity;
-        const ada = parseInt(lovelace) / 1000000; 
-        setBalance(ada.toFixed(2)); 
-      }
-
-      console.log('Wallet connected:', wallet);
-    } catch (error) {
-      console.error('Error connecting to wallet:', error);
-    }
-  };
+function ConnectWallet() {
+  const { isConnected, walletName, balance, connectWallet, disconnectWallet } =
+    useContext(WalletContext);
 
   return (
-    <div>
-      {!isConnected ? (
-        <button onClick={handleConnectWallet} style={buttonStyle}>
-          Connect Wallet
-        </button>
-      ) : (
-        <p>Balance: {balance ? balance : 'Loading...'} ADA</p>
-      )}
-    </div>
+    <header style={headerStyle}>
+      <div style={walletInfoStyle}>
+        {isConnected ? (
+          <>
+            <p>
+              Wallet: <strong>{walletName}</strong>
+            </p>
+            <p>
+              Balance: <strong>{balance ? `${balance} ADA` : 'Loading...'}</strong>
+            </p>
+            <button onClick={disconnectWallet} style={buttonStyle}>
+              Disconnect
+            </button>
+          </>
+        ) : (
+          <button onClick={connectWallet} style={buttonStyle}>
+            Connect Wallet
+          </button>
+        )}
+      </div>
+    </header>
   );
 }
 
-const buttonStyle = {
+const headerStyle = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
   padding: '10px 20px',
-  fontSize: '16px',
+  backgroundColor: '#f8f9fa',
+  borderBottom: '1px solid #ddd',
+};
+
+const titleStyle = {
+  fontSize: '24px',
+  fontWeight: 'bold',
+  margin: 0,
+};
+
+const walletInfoStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'flex-end',
+  gap: '5px',
+};
+
+const buttonStyle = {
+  padding: '5px 10px',
+  fontSize: '14px',
   backgroundColor: '#007bff',
   color: 'white',
   border: 'none',
-  borderRadius: '5px',
+  borderRadius: '3px',
   cursor: 'pointer',
 };
-export default ConnectWalletButton; 
+
+export default ConnectWallet;
