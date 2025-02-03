@@ -173,8 +173,8 @@ const Checkout = () => {
     handleCloseDialog();
   };
 
-  const handleSubmitTransaction = (txHash) => {
-    const transaction = txHash || transactionId
+  const handleSubmitTransaction = () => {
+    const transaction = transactionId
     console.log('Transaction ID submitted:', transactionId);
     const orderId = order?.id;
   
@@ -192,11 +192,14 @@ const Checkout = () => {
   };
 
   const handleYoroiPayment = async () => {
-    try {
-      if (!wallet) {
-        const connectedWallet = await BrowserWallet.enable('yoroi');
-        setWallet(connectedWallet);
-      }
+        try {
+    let connectedWallet = wallet;
+    
+    if (!connectedWallet) {
+      connectedWallet = await BrowserWallet.enable('yoroi');
+      setWallet(connectedWallet);
+    }
+
 
       if (!wallet) {
         setAlertMessage('Failed to connect to Yoroi wallet');
@@ -208,7 +211,7 @@ const Checkout = () => {
       const utxos = await wallet.getUtxos();
       const txBuilder = new MeshTxBuilder();
 
-      const lovelaceAmount = (order.total_amount * 1000000).toString();
+      const lovelaceAmount = (detail.total * 1000000).toString();
 
       const meshTxBody = {
         outputs: [
@@ -225,7 +228,7 @@ const Checkout = () => {
         },
       };
 
-      console.log(`Sending ${order.total_amount} ADA (${lovelaceAmount} Lovelace) to ${walletAddress}`);
+      console.log(`Sending ${detail.total} ADA (${lovelaceAmount} Lovelace) to ${walletAddress}`);
 
       const unsignedTx = await txBuilder.complete(meshTxBody);
       const signedTx = await wallet.signTx(unsignedTx);
@@ -234,10 +237,15 @@ const Checkout = () => {
       if (txHash) {
         console.log(`Transaction successful: ${txHash}`);
         setTransactionId(txHash);
-        handleSubmitTransaction(txHash);
-      } else {
+        
+        // Ensure the state updates before submitting
+        setTimeout(() => {
+            handleSubmitTransaction();
+        }, 1000);
+    } else {
         throw new Error('Transaction submission failed');
-      }
+    }
+    
     } catch (error) {
       console.error('Yoroi payment error:', error);
       setAlertSeverity('error');
