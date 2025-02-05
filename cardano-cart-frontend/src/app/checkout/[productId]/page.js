@@ -179,8 +179,8 @@ const Checkout = () => {
     const orderId = order?.id;
   
     verifyPayment(orderId, transaction, access_token)
-      .then(paymentResult => {
-        console.log('Payment completed successfully:', paymentResult);
+      .then(order_id => {
+        console.log('Payment completed successfully:', order_id);
         alert('Payment confirmed! Thank you for your purchase.');
         router.push('/orders');
       })
@@ -202,7 +202,8 @@ const Checkout = () => {
 
 
       if (!wallet) {
-        setAlertMessage('Failed to connect to Yoroi wallet');
+        connectedWallet = await BrowserWallet.enable('yoroi');
+        setWallet(connectedWallet);
         setAlertOpen(true);
         return;
       }

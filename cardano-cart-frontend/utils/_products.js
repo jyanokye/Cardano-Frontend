@@ -136,6 +136,7 @@ export const fetchProductSeller = async (product_id, access_token) => {
 
 
 export const completeOrder = async (orderData, access_token) => {
+  access_token = localStorage.getItem('accessToken');
   try {
     // Step 1: Send POST request to create the order
     const orderResponse = await axios.post(`${BASE_URL}/orders/`, orderData, {
@@ -163,6 +164,7 @@ export const completeOrder = async (orderData, access_token) => {
 
 
 export const verifyPayment = async(order_id, transaction_id, access_token) => {
+  access_token = localStorage.getItem('accessToken');
   try{
     const paymentResponse = await axios.post(`${BASE_URL}/payments/verify_payment/${order_id}/`,
        {
@@ -174,11 +176,11 @@ export const verifyPayment = async(order_id, transaction_id, access_token) => {
       },
     });
 
-    const paymentResult = paymentResponse.data;
+    
 
     //console.log('Payment verification result:', paymentResult);
 
-    return paymentResult;  // Return the payment verification result
+    return order_id;  // Return the payment verification result
   }catch(error){
     console.error('Error verifying payment:', error.response ? error.response.data : error.message);
     throw error;  // Rethrow the error for further handling
