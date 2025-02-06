@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import {
   Container,
   Typography,
@@ -22,20 +22,25 @@ import {
 import { ContentCopy, Check } from '@mui/icons-material';
 import { useCart } from "react-use-cart";
 import QRCode from "react-qr-code";
+import YoroiSuccessPage from '@/app/_components/Yoroi-success-Page';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Header from '../../_components/Header';
 import CheckoutAnimation from '@/app/_components/CheckoutLoading';
 import { completeOrder, fetchProductSeller, verifyPayment, getAllOrders } from '../../../../utils/_products';
+import { WalletContext } from '../../_components/WalletContext';
 import CircularProgress from '@mui/material/CircularProgress';
 import { BrowserWallet, Transaction, MeshTxBuilder } from '@meshsdk/core';
 
 const Checkout = () => {
+  const { isConnected, wallet, balance, walletName } = useContext(WalletContext);
   const [access_token, setAccessToken] = useState(null);
-  const [wallet, setWallet] = useState(null);
+ 
   const { productId } = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { items, removeItem, updateItemQuantity } = useCart();
+  const [paymentSuccess, setPaymentSuccess] = useState(false)
+  const [paidAmount, setPaidAmount] = useState(0)
   
   const [openDialog, setOpenDialog] = useState(false);
   const [transactionId, setTransactionId] = useState('');
@@ -47,6 +52,7 @@ const Checkout = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [alertOpen, setAlertOpen] = useState(false);
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
+  const [orderId, setOrderId] = useState(null);
 
   const [alertMessage, setAlertMessage] = useState('');
   const [alertSeverity, setAlertSeverity] = useState('success');
@@ -84,35 +90,17 @@ const Checkout = () => {
     };
 
     getWalletAddress();
-  }, [product, productId, router, access_token, orderCreated]);
+  }, [product, productId, router, orderCreated]);
 
   useEffect(() => {
     setTimeout(() => setIsLoading(false), 2000);
   }, []);
 
-  const fetchRecentOrder = async () => {
-    if (access_token) {
-      try {
-        const allOrders = await getAllOrders(access_token);
-        if (allOrders && allOrders.length > 0) {
-          const recentOrder = allOrders[allOrders.length - 1];
-          setOrder(recentOrder);
-          setOrderCreated(true);
-          // Remove the item from the cart if it matches the order
-          if (product && product.id === recentOrder.product.id) {
-            removeItem(product.id);
-          }
-        }
-      } catch (error) {
-        console.error('Failed to fetch orders:', error);
-        setError('Failed to load recent order. Please try again.');
-      }
-    }
-  };
+ 
 
   useEffect(() => {
     if (isConfirmingPayment || isYoroiPayment) {
-      fetchRecentOrder();
+      setOrderCreated(true);
     }
   else if (product) { 
     setCheckDetail({
@@ -154,16 +142,19 @@ const Checkout = () => {
     };
 
     try {
-      await completeOrder(orderData, access_token);
+      const orderId = await completeOrder(orderData, access_token);
+      setOrderId(orderId);
       setAlertSeverity('info');
-      setAlertMessage('Order created! Please complete the payment soon.');
+      setAlertMessage(`Order #${orderId} created! Please complete the payment soon.`);
+      setOrderCreated(true);
+
       setAlertOpen(true);
       
-      // Fetch the recent order after creating the unpaid order
-      await fetchRecentOrder();
+ 
+  
       
       // Remove the item from the cart after creating the order
-      removeItem(productId);
+      removeItem(product.id);
     } catch (error) {
       console.error('Error completing order and payment:', error);
       setAlertSeverity('error');
@@ -176,11 +167,11 @@ const Checkout = () => {
   const handleSubmitTransaction = () => {
     const transaction = transactionId
     console.log('Transaction ID submitted:', transactionId);
-    const orderId = order?.id;
+   
   
     verifyPayment(orderId, transaction, access_token)
-      .then(order_id => {
-        console.log('Payment completed successfully:', order_id);
+      .then(orderId => {
+        console.log('Payment completed successfully:', orderId);
         alert('Payment confirmed! Thank you for your purchase.');
         router.push('/orders');
       })
@@ -193,22 +184,25 @@ const Checkout = () => {
 
   const handleYoroiPayment = async () => {
         try {
-    let connectedWallet = wallet;
-    
-    if (!connectedWallet) {
-      connectedWallet = await BrowserWallet.enable('yoroi');
+
+          if (!wallet) throw new Error('Wallet not connected.');
+    if (!isConnected) {
+      try{
+        connectedWallet = await BrowserWallet.enable('yoroi');
       setWallet(connectedWallet);
+      }
+      catch (error) {
+        console.error('Yoroi connection error:', error);
+        setAlertSeverity('error');
+        setAlertMessage('Yoroi connection failed: ' + error.message);
+        setAlertOpen(true);
+      }
     }
 
 
-      if (!wallet) {
-        connectedWallet = await BrowserWallet.enable('yoroi');
-        setWallet(connectedWallet);
-        setAlertOpen(true);
-        return;
-      }
+      
 
-      const changeAddress = await wallet.getChangeAddress();
+    const changeAddress = await wallet.getChangeAddress();
       const utxos = await wallet.getUtxos();
       const txBuilder = new MeshTxBuilder();
 
@@ -238,11 +232,12 @@ const Checkout = () => {
       if (txHash) {
         console.log(`Transaction successful: ${txHash}`);
         setTransactionId(txHash);
+        setPaidAmount(detail.total)
+   
+        setPaymentSuccess(true)
+
         
-        // Ensure the state updates before submitting
-        setTimeout(() => {
-            handleSubmitTransaction();
-        }, 1000);
+        
     } else {
         throw new Error('Transaction submission failed');
     }
@@ -254,6 +249,10 @@ const Checkout = () => {
       setAlertOpen(true);
     }
   };
+  if (paymentSuccess) {
+    return <YoroiSuccessPage amount={paidAmount} transactionId={transactionId} />
+  }
+
 
   const handleCloseAlert = (event, reason) => {
     if (reason === 'clickaway') {

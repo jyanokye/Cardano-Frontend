@@ -154,6 +154,7 @@ export const completeOrder = async (orderData, access_token) => {
     }
 
     //console.log('Order created successfully with ID:', orderId);
+    return orderId;  // Return the order ID
 
     
   } catch (error) {
@@ -163,10 +164,10 @@ export const completeOrder = async (orderData, access_token) => {
 };
 
 
-export const verifyPayment = async(order_id, transaction_id, access_token) => {
+export const verifyPayment = async(orderId, transaction_id, access_token) => {
   access_token = localStorage.getItem('accessToken');
   try{
-    const paymentResponse = await axios.post(`${BASE_URL}/payments/verify_payment/${order_id}/`,
+    const paymentResponse = await axios.post(`${BASE_URL}/payments/verify_payment/${orderId}/`,
        {
       transaction_id: transaction_id,
     }, {
@@ -175,12 +176,10 @@ export const verifyPayment = async(order_id, transaction_id, access_token) => {
         Authorization: `Bearer ${access_token}`,
       },
     });
-
     
-
     //console.log('Payment verification result:', paymentResult);
 
-    return order_id;  // Return the payment verification result
+    return orderId;  // Return the payment verification result
   }catch(error){
     console.error('Error verifying payment:', error.response ? error.response.data : error.message);
     throw error;  // Rethrow the error for further handling
