@@ -16,6 +16,7 @@ import {
   ListItem,
   ListItemText,
 } from '@mui/material'
+import NextLink from 'next/link'
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart'
 import MenuIcon from '@mui/icons-material/Menu'
 import AccountCircleIcon from '@mui/icons-material/AccountCircle'
@@ -110,9 +111,9 @@ const Header = () => {
           {/* Menu Links */}
           <motion.div className="hidden md:flex space-x-4" variants={fadeInFromLeft}>
             {menuItems.map((item) => (
-              <Button key={item.text} className="text-black">
-                <Link href={item.href}>{item.text}</Link>
-              </Button>
+              <Button key={item.text} className="text-black" component={NextLink} href={item.href}>
+              {item.text}
+            </Button>
             ))}
           </motion.div>
 

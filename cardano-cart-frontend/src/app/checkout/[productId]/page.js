@@ -170,7 +170,7 @@ const Checkout = () => {
    
   
     verifyPayment(orderId, transaction, access_token)
-      .then(PaymentResponse => {
+      .then( paymentResponse => {
         console.log('Payment completed successfully:', orderId);
         alert('Payment confirmed! Thank you for your purchase.');
         router.push('/orders');

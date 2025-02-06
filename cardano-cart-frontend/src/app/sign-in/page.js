@@ -22,7 +22,8 @@ import Stack from '@mui/joy/Stack';
 import dynamic from 'next/dynamic';
 
 import Image from 'next/image';
-
+import { UserContext } from '../../../utils/UserContext';
+import { useContext } from 'react';
 
 const DarkModeRoundedIcon = dynamic(() => import('@mui/icons-material/DarkModeRounded'));
 const LightModeRoundedIcon = dynamic(() => import('@mui/icons-material/LightModeRounded'));
@@ -64,7 +65,7 @@ const customTheme = extendTheme({ defaultColorScheme: 'dark' });
 
 export  default function JoySignInSideTemplate() {
   const router = useRouter();
-
+  const { setUser } = useContext(UserContext);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setLoading] = useState(false);
@@ -73,28 +74,24 @@ export  default function JoySignInSideTemplate() {
     event.preventDefault();
     setLoading(true);
 
-    const credentials = {
-      email: email,
-      password: password,
-    };
-  
+    const credentials = { email, password };
     const endpoint = `${BASE_URL}/users/login/`;
-  
-    auth.Credentials(credentials, endpoint)
-    .then(user => {
-      //console.log('Authenticated user:', user)
 
-      const accessToken = user.access;  // Adjust this based on your API response structure
-    
-      // Save the access token (or other user data) to localStorage
+    try {
+      const user = await auth.Credentials(credentials, endpoint);
+      const accessToken = user.access;
       localStorage.setItem('accessToken', accessToken);
-      console.log(accessToken);
-    
-      // Redirect the user to the homepage
-      router.push('/');
-    })
-    .catch(error => console.error('Error:', error));
-  }
+      console.log('Access Token:', accessToken);
+      setUser(user);
+      // Ensure the redirect happens after the token is stored
+      await router.push('/');
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
 
 

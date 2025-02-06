@@ -12,30 +12,34 @@ export const UserProvider = ({ children }) => {
 
   useEffect(() => {
     // This will only run on the client side
-    const data = localStorage.getItem('accessToken');
-    setAccessToken(data);
+    const token = localStorage.getItem('accessToken');
+
+    if (token) {
+      setAccessToken(token);
+      setUser(token);
+    } else {
+      setLoading(false); // Stop loading if no token is found
+    }
   }, []);
 
   useEffect(() => {
     const fetchUserData = async () => {
-      if (access_token) {
-        try {
-          // Fetch user data from the /me/ endpoint
-          const userResponse = await getCurrentUser(access_token);
-          //console.log(user)
-          setUser(userResponse);
-        } catch (error) {
-          console.error('Error fetching user data:', error);
-        } finally {
-          setLoading(false);
-        }
-      } else {
+      if (!access_token) return; // Prevent unnecessary API calls
+
+      setLoading(true); // Start loading while fetching user data
+
+      try {
+        const userResponse = await getCurrentUser(access_token);
+        setUser(userResponse);
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      } finally {
         setLoading(false);
       }
     };
 
     fetchUserData();
-  }, [access_token]);
+  }, [access_token]); // Only run when `access_token` changes
 
   return (
     <UserContext.Provider value={{ user, setUser, loading }}>
