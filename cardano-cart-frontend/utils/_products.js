@@ -179,7 +179,7 @@ export const verifyPayment = async(orderId, transaction_id, access_token) => {
     
     //console.log('Payment verification result:', paymentResult);
 
-    return orderId;  // Return the payment verification result
+    return paymentResponse;  // Return the payment verification result
   }catch(error){
     console.error('Error verifying payment:', error.response ? error.response.data : error.message);
     throw error;  // Rethrow the error for further handling
