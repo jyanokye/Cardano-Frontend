@@ -84,7 +84,7 @@ export  default function JoySignInSideTemplate() {
       console.log('Access Token:', accessToken);
       setUser(user);
       // Ensure the redirect happens after the token is stored
-      await router.push('/');
+      router.push('/');
     } catch (error) {
       console.error('Error:', error);
     } finally {
