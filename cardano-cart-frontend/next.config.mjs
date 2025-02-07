@@ -1,7 +1,7 @@
-/** @type {import('next').NextConfig} */
-const fs = require("fs");
-const path = require("path");
+import fs from "fs";
+import path from "path";
 
+/** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
     domains: ["localhost", "charming-ninnetta-knust-028ea081.koyeb.app"],
@@ -16,10 +16,10 @@ const nextConfig = {
     // Ensure WebAssembly files are copied correctly
     if (isServer) {
       const wasmSrc = path.resolve(
-        __dirname,
+        process.cwd(),
         "node_modules/@emurgo/cardano-serialization-lib-browser/sidan_csl_rs_bg.wasm"
       );
-      const wasmDest = path.resolve(__dirname, ".next/static/chunks/sidan_csl_rs_bg.wasm");
+      const wasmDest = path.resolve(process.cwd(), ".next/static/chunks/sidan_csl_rs_bg.wasm");
 
       if (fs.existsSync(wasmSrc)) {
         fs.copyFileSync(wasmSrc, wasmDest);

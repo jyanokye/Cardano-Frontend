@@ -101,18 +101,20 @@ const Checkout = () => {
   useEffect(() => {
     if (isConfirmingPayment || isYoroiPayment) {
       setOrderCreated(true);
+      return;
     }
-  else if (product) { 
-    setCheckDetail({
-      date: new Date().toISOString().split('T')[0],
-      product: product,
-      quantity: product.quantity,
-      total: product.price * product.quantity,
-      status: 'Pending Payment',
-      isPaid: false,
-    });
-  }
-  }, [access_token, isConfirmingPayment, isYoroiPayment]);
+    if (product) { 
+      setCheckDetail({
+        date: new Date().toISOString().split('T')[0],
+        product: product,
+        quantity: product.quantity,
+        total: product.price * product.quantity,
+        status: 'Pending Payment',
+        isPaid: false,
+      });
+    }
+  }, [access_token, isConfirmingPayment, isYoroiPayment, product]);
+  
 
   if (isLoading) {
     return <CheckoutAnimation />;
