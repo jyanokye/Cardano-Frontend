@@ -1,15 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    images: {
-        domains: ['localhost', 'charming-ninnetta-knust-028ea081.koyeb.app'],
-      },
-      webpack: function (config, options) {
-        config.experiments = {
-          
-          layers: true,
-        };
-        return config;
-      },
+  images: {
+      domains: ['localhost', 'charming-ninnetta-knust-028ea081.koyeb.app'],
+    },
 };
 
 export default nextConfig;
