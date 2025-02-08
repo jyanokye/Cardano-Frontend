@@ -1,7 +1,7 @@
 'use client';
 import React, { useContext } from 'react';
 import { WalletContext } from '../_components/WalletContext';
-import { ConnectWalletButton } from '@cardano-foundation/cardano-connect-with-wallet';
+
 
 function ConnectWallet() {
   const { isConnected, walletName, balance, connectWallet, disconnectWallet } =
