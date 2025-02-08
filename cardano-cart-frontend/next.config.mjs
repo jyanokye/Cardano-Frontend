@@ -1,20 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  images: {
-    domains: ['localhost', 'charming-ninnetta-knust-028ea081.koyeb.app'],
-  },
-  webpack: (config) => {
-    config.experiments = {
-      asyncWebAssembly: true,
-      topLevelAwait: true,
-      layers: true, 
-    };
-    config.module.rules.push({
-      test: /\.wasm$/,
-      type: "webassembly/async",
-    });
-    return config;
-  },
+    images: {
+        domains: ['localhost', 'charming-ninnetta-knust-028ea081.koyeb.app'],
+      },
+      webpack: function (config, options) {
+        config.experiments = {
+          asyncWebAssembly: true,
+          layers: true,
+        };
+        return config;
+      },
 };
 
 export default nextConfig;
