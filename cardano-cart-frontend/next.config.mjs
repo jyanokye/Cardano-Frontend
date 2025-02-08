@@ -10,6 +10,16 @@ const nextConfig = {
         };
         return config;
       },
-};
+};export async function getStaticProps(context) {
+  const data = await fetchData(context.params.id)
+  if (!data) {
+    return {
+      notFound: true,
+    }
+  }
+  return {
+    props: { data },
+  }
+}
 
 export default nextConfig;
