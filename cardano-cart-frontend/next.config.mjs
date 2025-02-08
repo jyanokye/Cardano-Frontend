@@ -4,7 +4,11 @@ const nextConfig = {
     domains: ['localhost', 'charming-ninnetta-knust-028ea081.koyeb.app'],
   },
   webpack: (config) => {
-    config.experiments = { asyncWebAssembly: true, topLevelAwait: true };
+    config.experiments = {
+      asyncWebAssembly: true,
+      topLevelAwait: true,
+      layers: true, 
+    };
     config.module.rules.push({
       test: /\.wasm$/,
       type: "webassembly/async",
