@@ -163,12 +163,12 @@ const Header = () => {
                   </>
                 ) : (
                   <>
-                    <Link href="/sign-in" prefetch="false" style={{ textDecoration: 'none', width: '100%', marginBottom: '8px' }}>
+                    <Link href="/sign-in" prefetch="true" style={{ textDecoration: 'none', width: '100%', marginBottom: '8px' }}>
                       <Button variant="outlined" color="primary" fullWidth>
                         Login
                       </Button>
                     </Link>
-                    <Link href="/sign-up" prefetch="false" style={{ textDecoration: 'none', width: '100%' }}>
+                    <Link href="/sign-up" prefetch="true" style={{ textDecoration: 'none', width: '100%' }}>
                       <Button variant="contained" color="primary" fullWidth>
                         Sign Up
                       </Button>
