@@ -90,7 +90,7 @@ const Checkout = () => {
     };
 
     getWalletAddress();
-  }, [product, productId, router, orderCreated]);
+  }, [product, productId, router, orderCreated, access_token]);
 
   useEffect(() => {
     setTimeout(() => setIsLoading(false), 2000);
