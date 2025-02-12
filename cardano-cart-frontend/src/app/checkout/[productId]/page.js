@@ -22,10 +22,10 @@ import {
 import { ContentCopy, Check } from '@mui/icons-material';
 import { useCart } from "react-use-cart";
 import QRCode from "react-qr-code";
-import YoroiSuccessPage from '@/app/_components/Yoroi-success-Page';
+import YoroiSuccessPage from '../../_components/Yoroi-success-Page';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Header from '../../_components/Header';
-import CheckoutAnimation from '@/app/_components/CheckoutLoading';
+import CheckoutAnimation from '../../_components/CheckoutLoading';
 import { completeOrder, fetchProductSeller, verifyPayment, getAllOrders } from '../../../../utils/_products';
 import { WalletContext } from '../../_components/WalletContext';
 import CircularProgress from '@mui/material/CircularProgress';

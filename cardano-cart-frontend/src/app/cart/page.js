@@ -27,7 +27,7 @@ import {
 import { Add, Remove, Close } from '@mui/icons-material';
 import { useCart } from "react-use-cart";
 import Header from '../_components/Header';
-import CartAnimation from '@/app/_components/CartLoading';
+import CartAnimation from '../_components/CartAnimation';
 
 const CartPage = () => {
   const {

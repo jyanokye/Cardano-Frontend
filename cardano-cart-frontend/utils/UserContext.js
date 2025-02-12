@@ -1,8 +1,12 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { getCurrentUser } from '../utils/_products'; // Adjust the path as necessary
 
-// Create the User Context
-export const UserContext = createContext();
+// Create the User Context with a default value
+export const UserContext = createContext({
+  user: null,
+  setUser: () => {},
+  loading: true
+});
 
 // Create a UserProvider component
 export const UserProvider = ({ children }) => {
@@ -11,12 +15,9 @@ export const UserProvider = ({ children }) => {
   const [access_token, setAccessToken] = useState(null);
 
   useEffect(() => {
-    // This will only run on the client side
     const token = localStorage.getItem('accessToken');
-
     if (token) {
       setAccessToken(token);
-      setUser(token);
     } else {
       setLoading(false); // Stop loading if no token is found
     }
@@ -33,6 +34,7 @@ export const UserProvider = ({ children }) => {
         setUser(userResponse);
       } catch (error) {
         console.error('Error fetching user data:', error);
+        setUser(null); // Ensure user is set to null if fetch fails
       } finally {
         setLoading(false);
       }

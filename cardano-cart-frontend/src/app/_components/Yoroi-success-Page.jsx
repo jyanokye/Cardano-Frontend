@@ -65,5 +65,5 @@ const YoroiSuccessPage = ({ amount, transactionId }) => {
   )
 }
 
-export default YoroiSuccessPage;
+export default YoroiSuccessPage
 
