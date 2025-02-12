@@ -30,10 +30,10 @@ import Image from 'next/image';
 import { styled } from '@mui/material/styles';
 import { useRouter } from 'next/navigation';
 import Header from '../_components/Header';
-import OrderAnimation from '../_components/OrderLoading';
+import dynamic from 'next/dynamic';
 import { getAllOrders, verifyPayment } from '../../../utils/_products';
 import { formatDate } from '../../../utils/_dateformat';
-
+const OrderAnimation = dynamic(() => import('../_components/OrderLoading'), { ssr: false });
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   fontWeight: 'bold',
