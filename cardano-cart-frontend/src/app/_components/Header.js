@@ -1,66 +1,60 @@
-'use client';
-import React, { useState, useEffect } from 'react';
-import { 
-  Typography, 
-  IconButton, 
-  AppBar, 
-  Badge, 
-  Toolbar, 
-  Button, 
-  Box, 
-  Popover, 
+'use client'
+
+import React, { useState, useContext } from 'react'
+import {
+  Typography,
+  IconButton,
+  AppBar,
+  Badge,
+  Toolbar,
+  Button,
+  Box,
+  Popover,
   Link,
   Drawer,
   List,
   ListItem,
-  ListItemText
-} from '@mui/material';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import MenuIcon from '@mui/icons-material/Menu';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import { motion } from 'framer-motion';
-import { styled } from '@mui/system';
-import { useCart } from 'react-use-cart';
-import CartDrawer from './CartDrawer';
+  ListItemText,
+} from '@mui/material'
+import NextLink from 'next/link'
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart'
+import MenuIcon from '@mui/icons-material/Menu'
+import AccountCircleIcon from '@mui/icons-material/AccountCircle'
+import { motion } from 'framer-motion'
+import { styled } from '@mui/system'
+import { useCart } from 'react-use-cart'
+import CartDrawer from './CartDrawer'
+import { WalletContext } from './WalletContext'
+import { UserContext } from '../../../utils/UserContext' // Adjust the path as necessary
+import ConnectWallet from '../hooks/YoroiWallet'
 
 const Header = () => {
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [cartOpen, setCartOpen] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [hasToken, setHasToken] = useState(false);
-  const { totalItems } = useCart();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    const token = localStorage.getItem('accessToken');
-    if (token) {
-      setHasToken(true);
-    }
-  }, []);
+  const [anchorEl, setAnchorEl] = useState(null)
+  const [cartOpen, setCartOpen] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const { totalItems } = useCart()
+  const { user, loading, setUser } = useContext(UserContext)
+  const { isConnected, walletName, balance, connectWallet, disconnectWallet } =
+    useContext(WalletContext);
 
   const handleClick = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
+    setAnchorEl(event.currentTarget)
+  }
 
   const handleClose = () => {
-    setAnchorEl(null);
-  };
+    setAnchorEl(null)
+  }
 
   const handleCartOpen = () => {
-    setCartOpen(true);
-  };
+    setCartOpen(true)
+  }
 
   const handleCartClose = () => {
-    setCartOpen(false);
-  };
+    setCartOpen(false)
+  }
 
   const handleMobileMenuToggle = () => {
-    setMobileMenuOpen(!mobileMenuOpen);
-  };
-
-  if (!mounted) {
-    return null;
+    setMobileMenuOpen(!mobileMenuOpen)
   }
 
   const StyledBadge = styled(Badge)(({ theme }) => ({
@@ -70,10 +64,10 @@ const Header = () => {
       border: `2px solid blue`,
       padding: '0 4px',
     },
-  }));
+  }))
 
-  const open = Boolean(anchorEl);
-  const id = open ? 'account-popover' : undefined;
+  const open = Boolean(anchorEl)
+  const id = open ? 'account-popover' : undefined
 
   const fadeInFromLeft = {
     hidden: { opacity: 0, x: -20 },
@@ -85,15 +79,19 @@ const Header = () => {
         ease: [0.175, 0.885, 0.32, 1.275],
       },
     },
-  };
+  }
 
   const menuItems = [
     { text: 'Home', href: '/' },
-    { text: 'ABout', href: '/about' },
     { text: 'Shop', href: '/shop' },
     { text: 'Orders', href: '/orders' },
+    { text: 'About', href: '/about' },
     
-  ];
+  ]
+
+  if (loading) {
+    return null // Or a loader, depending on your UI
+  }
 
   return (
     <AppBar position="static" color="transparent" className="bg-white shadow-md">
@@ -112,12 +110,11 @@ const Header = () => {
         <motion.div className="flex items-center space-x-4" variants={fadeInFromLeft} initial="hidden" animate="visible">
           {/* Menu Links */}
           <motion.div className="hidden md:flex space-x-4" variants={fadeInFromLeft}>
-            {menuItems.map((item, index) => (
-              <Button key={index} className="text-black">
-                <a href={item.href}>{item.text}</a>
-              </Button>
+            {menuItems.map((item) => (
+              <Button key={item.text} className="text-black" component={NextLink} href={item.href}>
+              {item.text}
+            </Button>
             ))}
-
           </motion.div>
 
           {/* Cart & Auth */}
@@ -143,28 +140,35 @@ const Header = () => {
               }}
             >
               <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                {hasToken ? (
+                {user ? (
                   <>
                     <Link href="/profile" style={{ textDecoration: 'none', width: '100%', marginBottom: '8px' }}>
                       <Button variant="outlined" color="primary" fullWidth>
                         Profile
                       </Button>
                     </Link>
-                    <Button variant="contained" color="primary" fullWidth onClick={() => {
-                      localStorage.removeItem('accessToken');
-                      setHasToken(false);
-                    }}>
-                      Logout
-                    </Button>
+                    <Link href="/">
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        fullWidth
+                        onClick={() => {
+                          localStorage.removeItem('accessToken')
+                          setUser(null) // Update context to reflect logout
+                        }}
+                      >
+                        Logout
+                      </Button>
+                    </Link>
                   </>
                 ) : (
                   <>
-                    <Link href="/sign-in" style={{ textDecoration: 'none', width: '100%', marginBottom: '8px' }}>
+                    <Link href="/sign-in"  style={{ textDecoration: 'none', width: '100%', marginBottom: '8px' }}>
                       <Button variant="outlined" color="primary" fullWidth>
                         Login
                       </Button>
                     </Link>
-                    <Link href="/sign-up" style={{ textDecoration: 'none', width: '100%' }}>
+                    <Link href="/sign-up"  style={{ textDecoration: 'none', width: '100%' }}>
                       <Button variant="contained" color="primary" fullWidth>
                         Sign Up
                       </Button>
@@ -173,16 +177,16 @@ const Header = () => {
                 )}
               </Box>
             </Popover>
-
+            <ConnectWallet />
             {/* Shopping Cart Icon */}
             <IconButton aria-label="cart" className="text-black">
-              <StyledBadge badgeContent={mounted ? totalItems : 0} color="primary" onClick={handleCartOpen}>
+              <StyledBadge badgeContent={totalItems} color="primary" onClick={handleCartOpen}>
                 <ShoppingCartIcon />
               </StyledBadge>
             </IconButton>
           </motion.div>
 
-          {/* Mobile Menu Icon */}
+          {/* Mobile Menu */}
           <motion.div className="md:hidden" variants={fadeInFromLeft}>
             <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleMobileMenuToggle}>
               <MenuIcon className="text-black" />
@@ -192,11 +196,7 @@ const Header = () => {
         <CartDrawer open={cartOpen} onClose={handleCartClose} />
 
         {/* Mobile Menu Drawer */}
-        <Drawer
-          anchor="right"
-          open={mobileMenuOpen}
-          onClose={handleMobileMenuToggle}
-        >
+        <Drawer anchor="right" open={mobileMenuOpen} onClose={handleMobileMenuToggle}>
           <Box
             sx={{ width: 250 }}
             role="presentation"
@@ -204,8 +204,8 @@ const Header = () => {
             onKeyDown={handleMobileMenuToggle}
           >
             <List>
-              {menuItems.map((item, index) => (
-                <ListItem button key={index} component="a" href={item.href}>
+              {menuItems.map((item) => (
+                <ListItem button key={item.text} component={Link} href={item.href}>
                   <ListItemText primary={item.text} />
                 </ListItem>
               ))}
@@ -214,7 +214,7 @@ const Header = () => {
         </Drawer>
       </Toolbar>
     </AppBar>
-  );
-};
+  )
+}
 
 export default Header;

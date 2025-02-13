@@ -26,8 +26,8 @@ import {
 } from '@mui/material';
 import { Add, Remove, Close } from '@mui/icons-material';
 import { useCart } from "react-use-cart";
-import Header from '../_components/Header';
 import dynamic from 'next/dynamic';
+import Header from '../_components/Header';
 const CartAnimation = dynamic(() => import('../_components/CartLoading'), { ssr: false });
 
 const CartPage = () => {
@@ -45,7 +45,7 @@ const CartPage = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   useEffect(() => {
-    setTimeout(() => setIsLoading(false), 2000);
+    setTimeout(() => setIsLoading(false), 200);
     setMounted(true);
   }, []);
 

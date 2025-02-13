@@ -35,6 +35,7 @@ import { getAllOrders, verifyPayment } from '../../../utils/_products';
 import { formatDate } from '../../../utils/_dateformat';
 const OrderAnimation = dynamic(() => import('../_components/OrderLoading'), { ssr: false });
 
+
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   fontWeight: 'bold',
   padding: theme.spacing(1),
@@ -116,7 +117,7 @@ const OrderPage = () => {
     // Call the function to complete the order and verify payment
     verifyPayment(orderId, transactionId, access_token)
       .then(paymentResult => {
-        console.log('Payment completed successfully:', paymentResult);
+        console.log('Payment completed successfully:', orderId);
         // Handle success, e.g., show a success message, redirect, etc.
   
         alert('Payment confirmed! Thank you for your purchase.');
@@ -159,7 +160,7 @@ const OrderPage = () => {
                 {orders.map((order) => (
                   <TableRow key={order?.id}>
                     <TableCell component="th" scope="row" sx={{ padding: 1 }}>
-                      {order?.id}...
+                      {order?.id}
                     </TableCell>
 
                     <TableCell align="right" sx={{ padding: 1 }}>₳{order?.total_amount}</TableCell>
