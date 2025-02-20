@@ -192,7 +192,9 @@ const Header = () => {
                 )}
               </Box>
             </Popover>
-            <ConnectWallet />
+            {!isMobile && (
+              <ConnectWallet />)}
+            
             {/* Shopping Cart Icon */}
             <IconButton aria-label="cart" className="text-black">
               <StyledBadge badgeContent={totalItems} color="primary" onClick={handleCartOpen}>
