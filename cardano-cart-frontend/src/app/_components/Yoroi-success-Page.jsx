@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { motion } from "framer-motion"
 
 const YoroiSuccessPage = ({ amount, transactionId }) => {
   const [copied, setCopied] = useState(false)
@@ -12,10 +13,73 @@ const YoroiSuccessPage = ({ amount, transactionId }) => {
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
+  const draw = {
+    hidden: { pathLength: 0, opacity: 0 },
+    visible: (i) => ({
+      pathLength: 1,
+      opacity: 1,
+      transition: {
+        pathLength: {
+          delay: i * 0.2,
+          type: "spring",
+          duration: 1.5,
+          bounce: 0.2,
+          ease: "easeInOut",
+        },
+        opacity: { delay: i * 0.2, duration: 0.2 },
+      },
+    }),
+  }
+  
+  function Checkmark({ size = 100, strokeWidth = 2, color = "currentColor", className = "" }) {
+    return (
+      <motion.svg
+        width={size}
+        height={size}
+        viewBox="0 0 100 100"
+        initial="hidden"
+        animate="visible"
+        className={className}
+      >
+        <title>Animated Checkmark</title>
+        <motion.circle
+          cx="50"
+          cy="50"
+          r="40"
+          stroke={color}
+          variants={draw}
+          custom={0}
+          style={{
+            strokeWidth,
+            strokeLinecap: "round",
+            fill: "transparent",
+          }}
+        />
+        <motion.path
+          d="M30 50L45 65L70 35"
+          stroke={color}
+          variants={draw}
+          custom={1}
+          style={{
+            strokeWidth,
+            strokeLinecap: "round",
+            strokeLinejoin: "round",
+            fill: "transparent",
+          }}
+        />
+      </motion.svg>
+    )
+  }
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
+      <Checkmark
+              size={80}
+              strokeWidth={4}
+              color="rgb(16 185 129)"
+              className="relative z-10 dark:drop-shadow-[0_0_10px_rgba(0,0,0,0.1)]"
+            />
         <h1 className="text-3xl font-bold text-center mb-4">Payment Successful!</h1>
         <p className="text-xl text-center mb-4">Amount Paid: ₳{amount}</p>
         <p className="text-center mb-6">Thank you for your purchase. Your transaction was successful.</p>

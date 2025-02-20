@@ -1,6 +1,10 @@
 'use client'
 
 import React, { useState, useContext } from 'react'
+import { useRouter } from 'next/router';
+import { useMediaQuery } from '@mui/material';
+import { useTheme } from '@mui/system';
+
 import {
   Typography,
   IconButton,
@@ -34,6 +38,7 @@ const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const { totalItems } = useCart()
   const { user, loading, setUser } = useContext(UserContext)
+
   const { isConnected, walletName, balance, connectWallet, disconnectWallet } =
     useContext(WalletContext);
 
@@ -89,15 +94,19 @@ const Header = () => {
     
   ]
 
+  
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md')); // Hides on screens md & larger
   if (loading) {
     return null // Or a loader, depending on your UI
   }
-
+  
   return (
     <AppBar position="static" color="transparent" className="bg-white shadow-md">
-      <Toolbar className="flex justify-between items-center">
+      <Toolbar className="flex-row justify-between items-center " sx={{ display: "flex", flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
         <motion.div
-          className="flex items-center"
+        
+          className="flex items-center "
           initial="hidden"
           animate="visible"
           variants={fadeInFromLeft}
@@ -107,18 +116,23 @@ const Header = () => {
           </Typography>
         </motion.div>
 
-        <motion.div className="flex items-center space-x-4" variants={fadeInFromLeft} initial="hidden" animate="visible">
+        <motion.div className="flex items-center " variants={fadeInFromLeft} initial="hidden" animate="visible" >
+          <Box sx={{  display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
           {/* Menu Links */}
-          <motion.div className="hidden md:flex space-x-4" variants={fadeInFromLeft}>
-            {menuItems.map((item) => (
-              <Button key={item.text} className="text-black" component={NextLink} href={item.href}>
-              {item.text}
-            </Button>
-            ))}
-          </motion.div>
+          {!isMobile && (
+  <motion.div className="flex space-x-4" variants={fadeInFromLeft}>
+    {menuItems.map((item) => (
+      <Button key={item.text} className="text-black" component={NextLink} href={item.href}>
+        {item.text}
+      </Button>
+    ))}
+  </motion.div>
+)}
+
 
           {/* Cart & Auth */}
           <motion.div className="flex items-center space-x-4" variants={fadeInFromLeft}>
+            <Box sx={{  display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
             {/* Account Icon */}
             <IconButton className="text-black" onClick={handleClick}>
               <AccountCircleIcon />
@@ -155,6 +169,7 @@ const Header = () => {
                         onClick={() => {
                           localStorage.removeItem('accessToken')
                           setUser(null) // Update context to reflect logout
+                          
                         }}
                       >
                         Logout
@@ -184,14 +199,19 @@ const Header = () => {
                 <ShoppingCartIcon />
               </StyledBadge>
             </IconButton>
+            </Box>
           </motion.div>
 
           {/* Mobile Menu */}
           <motion.div className="md:hidden" variants={fadeInFromLeft}>
-            <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleMobileMenuToggle}>
-              <MenuIcon className="text-black" />
-            </IconButton>
+          {isMobile && (
+  <IconButton edge="start" color="inherit" aria-label="menu" onClick={handleMobileMenuToggle} sx={{ ml: 2 }}>
+    <MenuIcon className="text-black" />
+  </IconButton>
+)}
+
           </motion.div>
+          </Box>
         </motion.div>
         <CartDrawer open={cartOpen} onClose={handleCartClose} />
 

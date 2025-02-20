@@ -20,14 +20,14 @@ import {
 import { ThemeProvider } from "@mui/material/styles";
 import Header from "./_components/Header";
 import theme from "./_components/theme";
-import { motion } from "framer-motion";
+import { color, motion } from "framer-motion";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { ArrowBackIos, ArrowForwardIos } from "@mui/icons-material";
 import { useCart } from "react-use-cart";
 import { current_products } from "./data";
-
+import Carousel from "./_components/Features";
 import { getAllProducts } from "../../utils/_products";
 // import { useRouter } from "next/compat/router";
 import { useRouter } from "next/navigation";
@@ -192,7 +192,8 @@ const Home = () => {
     <>
       <ThemeProvider theme={theme}>
         <Header />
-        <Container maxWidth="xl" sx={{ mt: { xs: 2, sm: 4, md: 6 } }}>
+        <Container maxWidth="xl" sx={{ mt: { xs: 0, sm: 0, md: 0 } }}>
+         
           <Box
             sx={{
               display: "flex",
@@ -236,8 +237,8 @@ const Home = () => {
                 Shop with ease using Cardano for fast, secure payments. Enjoy a
                 smooth shopping experience with low fees and exclusive deals.
               </Typography>
-              <Button variant="contained" color="primary" size="large">
-                <a href="/shop">Shop Now</a>
+              <Button variant="contained" color="primary" size="large" sx={{ textDecoration: 'none' }}>
+                <a href="/shop" style={{ color: 'white', textDecoration: 'none'}}>Shop Now</a>
               </Button>
             </motion.div>
 
@@ -265,7 +266,7 @@ const Home = () => {
               </Box>
             </motion.div>
           </Box>
-
+      
           <Box sx={{ my: { xs: 4, sm: 6, md: 8 } }}>
             <Typography
               variant="h4"
@@ -294,7 +295,7 @@ const Home = () => {
               </Slider>
             </Box>
           </Box>
-
+          
           <Box sx={{ my: { xs: 4, sm: 6, md: 8 } }}>
             <Typography
               variant="h4"
@@ -321,7 +322,7 @@ const Home = () => {
               ))}
             </Grid>
           </Box>
-
+         
           <Box sx={{ my: { xs: 4, sm: 6, md: 8 } }}>
             <Typography
               variant="h4"
@@ -342,6 +343,7 @@ const Home = () => {
               </Button>
             </Box>
           </Box>
+          
 
           <Box
             sx={{
