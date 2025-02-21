@@ -20,7 +20,7 @@ import DarkModeRoundedIcon from '@mui/icons-material/DarkModeRounded';
 import LightModeRoundedIcon from '@mui/icons-material/LightModeRounded';
 import  GoogleIcon  from './GoogleIcon';
 import dynamic from 'next/dynamic';
-const SignInAnimation = dynamic(() => import('../_components/SignInAnimation'));
+const SignUpAnimation = dynamic(() => import('../_components/SignUpAnimation'));
 
 const BASE_URL = 'https://charming-ninnetta-knust-028ea081.koyeb.app/api/v1';
 //const BASE_URL = 'http://127.0.0.1:8000/api/v1';
@@ -131,7 +131,7 @@ export  default function JoySignInSideTemplate() {
             zIndex: 9999,
           }}
         >
-          <SignInAnimation/>
+          <SignUpAnimation/>
           <Typography
             sx={{
               color: 'white',

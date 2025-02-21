@@ -87,6 +87,7 @@ export  default function JoySignInSideTemplate() {
       router.push('/');
     } catch (error) {
       console.error('Error:', error);
+      alert('Invalid email or password. Please try again.');
     } finally {
       setLoading(false);
     }
