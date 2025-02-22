@@ -12,21 +12,30 @@ export const WalletProvider = ({ children }) => {
   const [balance, setBalance] = useState(null)
 
   useEffect(() => {
-    const savedWalletName = localStorage.getItem("walletName")
-    const savedBalance = localStorage.getItem("balance")
-    const savedIsConnected = localStorage.getItem("isConnected") === "true"
+    const loadWallet = async () => {
+      const savedWalletName = localStorage.getItem("walletName")
+      const savedBalance = localStorage.getItem("balance")
+      const savedIsConnected = localStorage.getItem("isConnected") === "true"
 
-    if (savedIsConnected && savedWalletName) {
-      setWalletName(savedWalletName)
-      setBalance(savedBalance)
-      setIsConnected(true)
-
-      const walletInstance = BrowserWallet.enable("yoroi")
-      if (!walletInstance) {
-        setIsConnected(false)
+      if (savedIsConnected && savedWalletName) {
+        try {
+          const walletInstance = await BrowserWallet.enable("yoroi")
+          if (walletInstance) {
+            setWalletName(savedWalletName)
+            setWallet(walletInstance)
+            setIsConnected(true)
+            setBalance(savedBalance)
+          } else {
+            setIsConnected(false)
+          }
+        } catch (error) {
+          console.error("Error loading wallet:", error)
+          setIsConnected(false)
+        }
       }
-      setWallet(walletInstance)
     }
+
+    loadWallet()
   }, [])
 
   const connectWallet = async () => {
@@ -34,7 +43,6 @@ export const WalletProvider = ({ children }) => {
       const walletInstance = await BrowserWallet.enable("yoroi")
 
       if (!walletInstance) {
-        // Yoroi wallet is not installed, redirect to extension page
         window.open("https://yoroi-wallet.com/", "_blank")
         return
       }
@@ -56,10 +64,7 @@ export const WalletProvider = ({ children }) => {
       }
     } catch (error) {
       console.error("Error connecting to wallet:", error)
-      // If the error is due to the wallet not being installed, redirect to extension page
-      
-        window.open("https://yoroi-wallet.com/", "_blank")
-      
+      window.open("https://yoroi-wallet.com/", "_blank")
     }
   }
 
@@ -89,4 +94,3 @@ export const WalletProvider = ({ children }) => {
     </WalletContext.Provider>
   )
 }
-

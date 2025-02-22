@@ -192,6 +192,7 @@ const Checkout = () => {
       try{
         connectedWallet = await BrowserWallet.enable('yoroi');
       setWallet(connectedWallet);
+      setIsConnected(true);
       }
       catch (error) {
         console.error('Yoroi connection error:', error);

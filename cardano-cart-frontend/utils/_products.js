@@ -133,6 +133,7 @@ export const fetchProductSeller = async (product_id, access_token) => {
 
 
 export const completeOrder = async (orderData, access_token) => {
+  access_token = localStorage.getItem('accessToken');
   try {
     // Step 1: Send POST request to create the order
     const orderResponse = await axios.post(`${BASE_URL}/orders/`, orderData, {
@@ -150,6 +151,7 @@ export const completeOrder = async (orderData, access_token) => {
     }
 
     //console.log('Order created successfully with ID:', orderId);
+    return orderId;  // Return the order ID
 
     
   } catch (error) {

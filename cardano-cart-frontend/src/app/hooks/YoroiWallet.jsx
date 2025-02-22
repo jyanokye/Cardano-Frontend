@@ -12,9 +12,7 @@ function ConnectWallet() {
       <div style={walletInfoStyle}>
         {isConnected ? (
           <>
-            <p>
-              Wallet: <strong>{walletName}</strong>
-            </p>
+           
             <p>
               Balance: <strong>{balance ? `${balance} ADA` : 'Loading...'}</strong>
             </p>
