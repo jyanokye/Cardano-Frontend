@@ -4,6 +4,7 @@ import "./globals.css";
 import { CartProvider} from "react-use-cart";
 import theme from "./_components/theme";
 import Script from "next/script";
+import Head from "next/head";
 import { ThemeProvider } from "@mui/material";
 import { WalletProvider } from "./_components/WalletContext";
 import { UserProvider } from "../../utils/UserContext"; // Import the correct provider
@@ -26,7 +27,7 @@ const geistMono = localFont({
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <head>
+      <Head>
       <link
           href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
           rel="stylesheet"
@@ -43,7 +44,7 @@ export default function RootLayout({ children }) {
           `}
         </Script>
         <title>Cardano Cart</title>
-        </head>
+        </Head>
         
 
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
