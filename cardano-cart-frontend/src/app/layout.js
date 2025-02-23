@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { CartProvider} from "react-use-cart";
 import theme from "./_components/theme";
+import Script from "next/script";
 import { ThemeProvider } from "@mui/material";
 import { WalletProvider } from "./_components/WalletContext";
 import { UserProvider } from "../../utils/UserContext"; // Import the correct provider
@@ -31,8 +32,20 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
         />
           <link rel="icon" href="/images/Cart-Logo1.ico" type="image/png"/>
+          <Script src="https://www.googletagmanager.com/gtag/js?id=G-VF1MGSRXYC" strategy="afterInteractive" />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-VF1MGSRXYC');
+          `}
+        </Script>
         <title>Cardano Cart</title>
         </head>
+        
+
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
           <ThemeProvider theme={theme}>
             <WalletProvider>
