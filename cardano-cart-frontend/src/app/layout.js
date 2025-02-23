@@ -7,6 +7,7 @@ import Script from "next/script";
 import Head from "next/head";
 import { ThemeProvider } from "@mui/material";
 import { WalletProvider } from "./_components/WalletContext";
+import { GoogleTagManager } from "@next/third-parties/google";
 import { UserProvider } from "../../utils/UserContext"; // Import the correct provider
 
 // Load local fonts
@@ -52,6 +53,7 @@ export default function RootLayout({ children }) {
             <WalletProvider>
             <UserProvider>
               <CartProvider>
+              <GoogleTagManager gtmId="GTM-TQF3S6NK" />
                 {children}
               </CartProvider>
             </UserProvider>
