@@ -5,6 +5,7 @@ import { CartProvider} from "react-use-cart";
 import theme from "./_components/theme";
 import Script from "next/script";
 import Head from "next/head";
+import { SpeedInsights } from "@vercel/speed-insights/next"
 import { ThemeProvider } from "@mui/material";
 import { WalletProvider } from "./_components/WalletContext";
 import { GoogleTagManager } from "@next/third-parties/google";
