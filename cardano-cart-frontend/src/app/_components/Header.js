@@ -111,9 +111,9 @@ const Header = () => {
           animate="visible"
           variants={fadeInFromLeft}
         >
-          <Typography variant="h6" className="text-black font-bold mr-2">
+          <Link href="/" sx={{  fontWeight: 'bold', textDecoration: 'none', alignItems: 'center', fontSize:'22px'}} className="text-black font-bold mr-2">
             Cardano Cart
-          </Typography>
+          </Link>
         </motion.div>
 
         <motion.div className="flex items-center " variants={fadeInFromLeft} initial="hidden" animate="visible" >

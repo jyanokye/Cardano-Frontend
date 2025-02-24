@@ -34,7 +34,8 @@ export default function RootLayout({ children }) {
           href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
           rel="stylesheet"
         />
-          <link rel="icon" href="/images/Cart-Logo1.ico" type="image/png"/>
+          <link rel="icon" type="image/png" href="/images/Cart-Logo1.ico" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
           <Script src="https://www.googletagmanager.com/gtag/js?id=G-VF1MGSRXYC" strategy="afterInteractive" />
         <Script id="google-analytics" strategy="afterInteractive">
           {`
