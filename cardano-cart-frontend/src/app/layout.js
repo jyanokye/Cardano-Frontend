@@ -29,7 +29,7 @@ const geistMono = localFont({
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <Head>
+      <head>
       <link
           href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
           rel="stylesheet"
@@ -46,7 +46,7 @@ export default function RootLayout({ children }) {
           `}
         </Script>
         <title>Cardano Cart</title>
-        </Head>
+        </head>
         
 
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
