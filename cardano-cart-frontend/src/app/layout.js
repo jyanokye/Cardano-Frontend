@@ -55,8 +55,8 @@ export default function RootLayout({ children }) {
             <UserProvider>
               <CartProvider>
               <GoogleTagManager gtmId="GTM-TQF3S6NK" />
-              <SpeedInsights />
                 {children}
+                <SpeedInsights />
               </CartProvider>
             </UserProvider>
             </WalletProvider>
