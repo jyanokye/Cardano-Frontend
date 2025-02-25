@@ -173,7 +173,9 @@ export  default function JoySignInSideTemplate() {
             />
                 
               </IconButton>
-              <Typography level="title-lg" style={{ fontSize: '30px' }}>Cardano Cart</Typography>
+              <Link href="/" sx={{  fontWeight: 'bold', textDecoration: 'none', alignItems: 'center', fontSize:'22px'}} className="text-black font-bold mr-2">
+            Cardano Cart
+          </Link>
             </Box>
             <Box sx={{ transform: 'scale(0.8)' }}>
             <ColorSchemeToggle />

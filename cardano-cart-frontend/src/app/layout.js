@@ -9,6 +9,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next"
 import { ThemeProvider } from "@mui/material";
 import { WalletProvider } from "./_components/WalletContext";
 import { GoogleTagManager } from "@next/third-parties/google";
+import { Analytics } from "@vercel/analytics/react"
 import { UserProvider } from "../../utils/UserContext"; // Import the correct provider
 
 // Load local fonts
@@ -51,13 +52,15 @@ export default function RootLayout({ children }) {
         
 
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <SpeedInsights />
+      <Analytics/>
           <ThemeProvider theme={theme}>
             <WalletProvider>
             <UserProvider>
               <CartProvider>
               <GoogleTagManager gtmId="GTM-TQF3S6NK" />
                 {children}
-                <SpeedInsights />
+                
               </CartProvider>
             </UserProvider>
             </WalletProvider>

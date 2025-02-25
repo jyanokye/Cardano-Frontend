@@ -326,15 +326,16 @@ const Checkout = () => {
                     >
                       Confirm Payment
                     </Button>
-                    <Button
-                      variant="contained"
-                      color="secondary"
-                      fullWidth
-                      sx={{ mt: 2 }}
-                      onClick={handleYoroiPayment}
-                    >
-                      Pay with Yoroi
-                    </Button>
+                    {!isMobile && (
+  <Button 
+    variant="contained" 
+    color="primary" 
+    onClick={handleYoroiPayment}
+  >
+    Pay with Yoroi
+  </Button>
+)}
+
                   </>
                 )}
                 {!orderCreated && product && (
