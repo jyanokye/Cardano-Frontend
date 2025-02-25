@@ -43,7 +43,7 @@ export const WalletProvider = ({ children }) => {
       const walletInstance = await BrowserWallet.enable("yoroi")
 
       if (!walletInstance) {
-        window.open("https://yoroi-wallet.com/", "_blank")
+        window.open("https://chromewebstore.google.com/detail/yoroi/ffnbelfdoeiohenkjibnmadjiehjhajb?pli=1", "_blank")
         return
       }
 
@@ -64,7 +64,7 @@ export const WalletProvider = ({ children }) => {
       }
     } catch (error) {
       console.error("Error connecting to wallet:", error)
-      window.open("https://yoroi-wallet.com/", "_blank")
+      window.open("https://chromewebstore.google.com/detail/yoroi/ffnbelfdoeiohenkjibnmadjiehjhajb?pli=1", "_blank")
     }
   }
 
